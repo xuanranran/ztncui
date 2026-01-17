@@ -111,13 +111,17 @@ block net_content
             each member in members
               - const peer = member.peer;
               - const url = nwurl + '/member/' + member.id
-              tr(onclick=`window.location='${url}'` style='cursor: pointer;')
+              tr
                 td(style='text-align: center;')
                    input.form-control.text(type='text' name=member.id value=member.name onclick='event.stopPropagation();' placeholder='为设备命名')
                 td(style='text-align: center;')
-                   div(style='font-family: var(--font-mono); color: var(--text-heading);') #{member.id}
-                   if peer
-                     div(style='font-size: 0.8em; color: var(--text-muted);') v#{peer.version}
+                   div(style='display: flex; align-items: center; justify-content: center; gap: 12px;')
+                     div(style='text-align: left;')
+                       div(style='font-family: var(--font-mono); color: var(--text-heading); font-weight: 500;') #{member.id}
+                       if peer
+                         div(style='font-size: 0.75em; color: var(--text-muted);') v#{peer.version}
+                     a(href=url title='配置成员' style='width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: #F4F6F8; color: var(--text-muted); transition: all 0.2s;')
+                       i.glyphicon.glyphicon-cog(style='font-size: 1.1em;')
                 td(onclick='event.stopPropagation();' style='text-align: center;')
                    div.checkbox-wrapper(style='display: flex; flex-direction: column; align-items: center; gap: 6px;')
                      label.custom-checkbox
