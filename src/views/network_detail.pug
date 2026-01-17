@@ -100,11 +100,11 @@ block net_content
         table.table.table-hover
           thead
             tr
-              th(width='20%' style='text-align: center;') 名称 / 描述
+              th(width='25%' style='text-align: center;') 名称 / 描述
               th(width='15%' style='text-align: center;') 地址 (ID)
               th(width='10%' style='text-align: center;') 授权状态
-              th(width='20%' style='text-align: center;') 托管 IP
-              th(width='20%' style='text-align: center;') 物理地址
+              th(width='17.5%' style='text-align: center;') 托管 IP
+              th(width='17.5%' style='text-align: center;') 物理地址
               th(width='10%' style='text-align: center;') 状态
               th(width='5%')
           tbody
@@ -112,8 +112,8 @@ block net_content
               - const peer = member.peer;
               - const url = nwurl + '/member/' + member.id
               tr
-                td(style='text-align: center;')
-                   input.form-control.text(type='text' name=member.id value=member.name onclick='event.stopPropagation();' placeholder='为设备命名')
+                td(style='text-align: center; min-width: 200px;')
+                   input.form-control.text(type='text' name=member.id value=member.name onclick='event.stopPropagation();' placeholder='为设备命名' style='width: 100%;')
                 td(style='text-align: center;')
                    div(style='display: flex; align-items: center; justify-content: center; gap: 12px;')
                      div(style='text-align: left;')

@@ -135,10 +135,16 @@ body {
   .navbar-right {
     position: absolute;
     bottom: 24px;
-    width: calc(100% - 32px);
-    margin: 0 16px !important;
+    width: calc(100% - 48px) !important;
+    /* Increase margin safety */
+    margin: 0 24px !important;
     border-top: 1px solid var(--border-color);
     padding-top: 16px;
+    left: 0;
+  }
+
+  .navbar-nav.navbar-right>li {
+    width: 100%;
   }
 
   body>.container {
