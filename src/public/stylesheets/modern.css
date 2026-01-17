@@ -149,6 +149,80 @@ body {
 }
 
 /* =========================================
+   Login Page (Split Layout)
+   ========================================= */
+.auth-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #fff;
+}
+
+.auth-sidebar {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .auth-sidebar {
+    display: flex;
+    flex: 1;
+    background-color: #161C24;
+    /* Always Dark for Login Side */
+    color: #fff;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background-image: radial-gradient(circle at 50% 50%, #232a34 0%, #161C24 100%);
+  }
+}
+
+.auth-main {
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background-color: #fff;
+}
+
+@media (min-width: 992px) {
+  .auth-main {
+    flex: 0 0 480px;
+    border-left: 1px solid var(--border-color);
+  }
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Hide navigation on login page */
+body.login-page .navbar {
+  display: none !important;
+}
+
+body.login-page>.container {
+  margin: 0 !important;
+  width: 100% !important;
+  padding: 0 !important;
+  max-width: none !important;
+  background-color: transparent !important;
+}
+
+/* Fix text colors for login (since main theme is white sidebar) */
+.auth-sidebar h2 {
+  color: #fff !important;
+}
+
+.auth-sidebar p {
+  color: #919EAB !important;
+}
+
+
+/* =========================================
    Dashboard Components
    ========================================= */
 
