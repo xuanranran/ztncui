@@ -8,14 +8,10 @@ extends head_layout
 block nav_items
   // Imitating 'Organization' View
   +nav_item('account', '账户 / 组织', basePath + '/users', 'glyphicon-briefcase')
-  +nav_item('network_groups', '网络组', '#', 'glyphicon-folder-close')
-  +nav_item('controller_home', '网络', basePath + '/controller', 'glyphicon-cloud')
-  +nav_item('devices', '设备', '#', 'glyphicon-phone')
-  
-  // Separator
-  li(style='border-top: 1px solid rgba(0,0,0,0.06); margin: 8px 16px; padding-top: 8px;')
-  +nav_item('settings', '设置', '#', 'glyphicon-cog')
-  +nav_item('support', '支持', 'https://zerotier.com/support', 'glyphicon-question-sign')
+  //- Network Groups and Devices are placeholders as they don't exist in ztncui backend yet
+  //- +nav_item('network_groups', '网络组', basePath + '/controller/networks', 'glyphicon-folder-close')
+  +nav_item('controller_home', '网络', basePath + '/controller/networks', 'glyphicon-cloud')
+  //- +nav_item('devices', '设备', basePath + '/controller/networks', 'glyphicon-phone')
 
 block body_content
   .container(style='margin: 50px auto 20px')

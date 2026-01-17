@@ -102,9 +102,10 @@ block net_content
             tr
               th(width='20%') 名称 / 描述
               th(width='15%') 地址 (ID)
-              th(width='15%') 授权状态
-              th(width='25%') 托管 IP
-              th(width='15%') 最后可见
+              th(width='10%') 授权状态
+              th(width='20%') 托管 IP
+              th(width='20%') 物理地址
+              th(width='10%') 状态
               th(width='5%')
           tbody
             each member in members
@@ -128,6 +129,12 @@ block net_content
                          = digit
                    else
                      span(style='color: var(--text-muted); font-size: 0.9em;') 未分配 IP
+                td
+                   if (peer && peer.paths)
+                     each path in peer.paths
+                       div(style='font-family: var(--font-mono); font-size: 0.85em; color: var(--text-muted);') #{path.address}
+                   else
+                     span(style='color: var(--text-muted); font-size: 0.9em;') -
                 td
                    if (peer && peer.latency != -1)
                      span(style='color: var(--success); font-weight: 500;') 在线 (#{peer.latency}ms)
