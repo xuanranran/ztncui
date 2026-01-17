@@ -156,18 +156,18 @@ block net_content
                     |  以连接设备。
  
  
-   a.btn.btn-default(href='' name='refresh' role='button' style='margin-bottom: 24px;') 刷新
- 
-   // Network Details Card
-   .panel.panel-default
-     .panel-heading 网络详细信息
-     .panel-body
-       .detail-grid
-         each value, key in network
-           if key !== 'routes' && key !== 'ipAssignmentPools' && key !== 'rules'
-             .detail-item
-               .detail-label= key
-               .detail-value
-                 +json_value(value)
- 
-   a.btn.btn-default(href=(basePath + '/controller/networks') name='networks' role='button') 返回网络列表
+  a.btn.btn-default(href='' name='refresh' role='button' style='margin-bottom: 24px;') 刷新
+
+  // Network Details Card
+  .panel.panel-default
+    .panel-heading 网络详细信息
+    .panel-body
+      .detail-grid
+        each value, key in network
+          if key !== 'routes' && key !== 'ipAssignmentPools' && key !== 'rules'
+            .detail-item
+              .detail-label= key
+              .detail-value
+                +json_value(value)
+
+  a.btn.btn-default(href=(basePath + '/controller/networks') name='networks' role='button') 返回网络列表
