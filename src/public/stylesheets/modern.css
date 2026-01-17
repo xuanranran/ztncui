@@ -262,13 +262,12 @@ h2 {
   color: var(--text-heading) !important;
 }
 
-/* Toggle Switch (Modern Theme) */
+/* Toggle Switch (OpenClash Style) */
 .switch {
   position: relative !important;
   display: inline-block !important;
-  width: 44px !important;
-  /* Slightly more compact */
-  height: 24px !important;
+  width: 48px !important;
+  height: 26px !important;
   flex-shrink: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -295,10 +294,10 @@ h2 {
   right: 0 !important;
   bottom: 0 !important;
   background-color: #E0E0E0 !important;
-  /* Neutral Light Gray */
-  -webkit-transition: .3s ease-in-out !important;
-  transition: .3s ease-in-out !important;
-  border-radius: 24px !important;
+  /* Inactive Track: Gray */
+  -webkit-transition: .3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  transition: .3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  border-radius: 26px !important;
   border: none !important;
 }
 
@@ -307,19 +306,20 @@ h2 {
   content: "" !important;
   height: 20px !important;
   width: 20px !important;
-  left: 2px !important;
-  bottom: 2px !important;
-  background-color: white !important;
-  -webkit-transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
-  transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+  left: 4px !important;
+  bottom: 3px !important;
+  background-color: #4f3dd1 !important;
+  /* Inactive Knob: Theme Purple */
+  -webkit-transition: .3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  transition: .3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
   border-radius: 50% !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
   z-index: 2 !important;
 }
 
 input:checked+.slider {
   background-color: #4f3dd1 !important;
-  /* Theme Primary Purple */
+  /* Active Track: Theme Purple */
 }
 
 input:focus+.slider {
@@ -330,6 +330,8 @@ input:checked+.slider:before {
   -webkit-transform: translateX(20px) !important;
   -ms-transform: translateX(20px) !important;
   transform: translateX(20px) !important;
+  background-color: #ffffff !important;
+  /* Active Knob: White (High Contrast) */
 }
 
 .switch-label {
@@ -340,7 +342,7 @@ input:checked+.slider:before {
 }
 
 .switch-text {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--text-muted);
   text-align: center;
