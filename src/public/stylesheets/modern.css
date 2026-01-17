@@ -539,11 +539,33 @@ body.login-page .auth-card label {
     /* Larger touch area */
   }
 
-  /* Flex containers in panels should stack */
-  .panel-body div[style*="display: flex"] {
+  /* Flex containers in panels should stack (Generic fallback) */
+  .panel-body div[style*="display: flex"]:not(.settings-grid) {
     flex-direction: column;
     width: 100%;
     gap: 8px !important;
+  }
+
+  /* User Requested Settings Layout */
+  .settings-grid {
+    display: flex !important;
+    width: 100%;
+    margin: 0px auto;
+    flex-wrap: wrap !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    gap: 0 !important;
+    /* Let space-around handle it, or small gap */
+  }
+
+  .settings-grid .btn {
+    width: 48% !important;
+    /* 2 per row */
+    margin-bottom: 10px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 0;
   }
 
   /* Table Adjustments */
