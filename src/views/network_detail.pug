@@ -118,50 +118,56 @@ block net_content
                    div(style='font-family: var(--font-mono); color: var(--text-heading);') #{member.id}
                    if peer
                      div(style='font-size: 0.8em; color: var(--text-muted);') v#{peer.version}
-                td(onclick='event.stopPropagation();')
-                   label.status-pill(class=(member.authorized ? 'status-authorized' : 'status-pending') style='cursor: pointer;')
-                     input.authCheck(type='checkbox' value=member.id checked=(member.authorized? true : false) style='display: none;')
-                     span.status-text #{member.authorized ? '已授权' : '授权'}
-                td
+                 td(onclick='event.stopPropagation();')
+                   div.switch-label
+                     label.switch
+                       input.authCheck(type='checkbox' value=member.id checked=(member.authorized? true : false))
+                       span.slider
+                     span.status-text(style='min-width: 48px;') #{member.authorized ? '已授权' : '授权'}
+                 td
                    each ipAssignment in member.ipAssignments
                      span.ip-chip
                        each digit in ipAssignment
                          = digit
                    else
                      span(style='color: var(--text-muted); font-size: 0.9em;') 未分配 IP
-                td
+                 td
                    if (peer && peer.paths)
                      each path in peer.paths
                        div(style='font-family: var(--font-mono); font-size: 0.85em; color: var(--text-muted);') #{path.address}
                    else
                      span(style='color: var(--text-muted); font-size: 0.9em;') -
-                td
+                 td
                    if (peer && peer.latency != -1)
                      span(style='color: var(--success); font-weight: 500;') 在线 (#{peer.latency}ms)
                    else if (member.id == zt_address)
                      span(style='color: var(--primary); font-weight: 500;') 控制器
                    else
                      span(style='color: var(--text-muted);') 离线
-                td(onclick='event.stopPropagation();')
-                   a.btn.btn-danger.btn-xs(href=url + '/delete' title='删除成员')
-                     i.glyphicon.glyphicon-trash
-            else
-              tr
-                td(colspan='6' style='text-align: center; padding: 40px;')
-                  div(style='color: var(--text-muted);') 暂无设备加入此网络。
-                  div(style='margin-top: 8px;') 分享网络 ID 
-                    code #{network.nwid} 
-                    |  以连接设备。
-
-
-  a.btn.btn-default(href='' name='refresh' role='button') 刷新
-
-  h3#detail 网络详细信息
-  each value, key in network
-    .row(style='margin: 5px 0;')
-      .col-sm-2
-        a(href= network.nwid + '/' + key) #{key}:
-      .col-sm-10
-        +json_value(value)
-
-  a.btn.btn-default(href=(basePath + '/controller/networks') name='networks' role='button' style='margin-top: 10px;') 网络
+                 td(onclick='event.stopPropagation();')
+                    a.btn.btn-danger.btn-xs(href=url + '/delete' title='删除成员' style='background: transparent; border: none; color: #919EAB;')
+                      i.glyphicon.glyphicon-trash(style='font-size: 1.2em;')
+             else
+               tr
+                 td(colspan='6' style='text-align: center; padding: 40px;')
+                   div(style='color: var(--text-muted);') 暂无设备加入此网络。
+                   div(style='margin-top: 8px;') 分享网络 ID 
+                     code #{network.nwid} 
+                     |  以连接设备。
+ 
+ 
+   a.btn.btn-default(href='' name='refresh' role='button' style='margin-bottom: 24px;') 刷新
+ 
+   // Network Details Card
+   .panel.panel-default
+     .panel-heading 网络详细信息
+     .panel-body
+       .detail-grid
+         each value, key in network
+           if key !== 'routes' && key !== 'ipAssignmentPools' && key !== 'rules'
+             .detail-item
+               .detail-label= key
+               .detail-value
+                 +json_value(value)
+ 
+   a.btn.btn-default(href=(basePath + '/controller/networks') name='networks' role='button') 返回网络列表
