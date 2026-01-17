@@ -262,12 +262,12 @@ h2 {
   color: var(--text-heading) !important;
 }
 
-/* Toggle Switch (OpenClash Style) */
+/* Toggle Switch (Premium Modern - Smart/High-End) */
 .switch {
   position: relative !important;
   display: inline-block !important;
   width: 48px !important;
-  height: 26px !important;
+  height: 28px !important;
   flex-shrink: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -286,6 +286,7 @@ h2 {
   appearance: none !important;
 }
 
+/* The Track - Modern Glassy/Gradient Feel */
 .slider {
   position: absolute !important;
   cursor: pointer !important;
@@ -293,45 +294,61 @@ h2 {
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  background-color: #E0E0E0 !important;
-  /* Inactive Track: Gray */
-  -webkit-transition: .3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-  transition: .3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-  border-radius: 26px !important;
-  border: none !important;
+  background-color: #F1F5F9 !important;
+  /* Premium Slate Gray */
+  -webkit-transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
+  /* Smooth Spring */
+  transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
+  border-radius: 30px !important;
+  border: 1px solid #E2E8F0 !important;
+  /* Subtle Border */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03) !important;
 }
 
+/* The Knob - Floating Style */
 .slider:before {
   position: absolute !important;
   content: "" !important;
-  height: 20px !important;
-  width: 20px !important;
-  left: 4px !important;
-  bottom: 3px !important;
-  background-color: #4f3dd1 !important;
-  /* Inactive Knob: Theme Purple */
-  -webkit-transition: .3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-  transition: .3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  height: 22px !important;
+  width: 22px !important;
+  left: 3px !important;
+  bottom: 2px !important;
+  background-color: white !important;
+  -webkit-transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
+  transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
   border-radius: 50% !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  /* Soft Premium Shadow */
   z-index: 2 !important;
+  border: 1px solid rgba(0, 0, 0, 0.02) !important;
 }
 
+/* Hover Effect (Smart UI) */
+.switch:hover .slider:before {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  transform: scale(1.05);
+  /* Slight grow on hover */
+}
+
+/* Checked State - Vibrant Gradient */
 input:checked+.slider {
   background-color: #4f3dd1 !important;
-  /* Active Track: Theme Purple */
+  /* Primary Brand Color */
+  border-color: #4f3dd1 !important;
+  box-shadow: 0 4px 12px rgba(79, 61, 209, 0.25) !important;
+  /* Glow Effect */
 }
 
+/* Focus State for Accessibility */
 input:focus+.slider {
-  box-shadow: 0 0 1px #4f3dd1 !important;
+  box-shadow: 0 0 0 3px rgba(79, 61, 209, 0.15) !important;
 }
 
+/* Knob Movement */
 input:checked+.slider:before {
   -webkit-transform: translateX(20px) !important;
   -ms-transform: translateX(20px) !important;
   transform: translateX(20px) !important;
-  background-color: #ffffff !important;
-  /* Active Knob: White (High Contrast) */
 }
 
 .switch-label {
@@ -343,10 +360,19 @@ input:checked+.slider:before {
 
 .switch-text {
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
+  /* Bolder for modern look */
   color: var(--text-muted);
   text-align: center;
-  margin-top: 4px !important;
+  margin-top: 6px !important;
+  letter-spacing: 0.02em;
+  transition: color 0.3s ease;
+}
+
+/* Dynamic Text Color */
+.switch:hover+.switch-text,
+.switch-label:hover .switch-text {
+  color: var(--text-heading) !important;
 }
 
 /* Network Details Grid */
