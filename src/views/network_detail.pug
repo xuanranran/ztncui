@@ -118,7 +118,7 @@ block net_content
                    div(style='font-family: var(--font-mono); color: var(--text-heading);') #{member.id}
                    if peer
                      div(style='font-size: 0.8em; color: var(--text-muted);') v#{peer.version}
-                td(onclick='event.stopPropagation();')
+                td(onclick='event.stopPropagation();' style='text-align: center;')
                    div.checkbox-wrapper(style='display: flex; flex-direction: column; align-items: center; gap: 6px;')
                      label.custom-checkbox
                        input.authCheck(type='checkbox' value=member.id checked=(member.authorized? true : false))
