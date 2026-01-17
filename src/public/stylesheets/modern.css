@@ -1047,4 +1047,117 @@ body.login-page .auth-card label {
     background-color: #1A1A1A !important;
     border-color: #2A2A2A !important;
   }
+
+  /* Login Page */
+  .auth-wrapper {
+    background-color: #000000 !important;
+  }
+
+  .auth-main {
+    background-color: #000000 !important;
+    border-left-color: #2A2A2A !important;
+  }
+
+  .auth-card {
+    background-color: transparent !important;
+  }
+
+  .auth-card h2 {
+    color: var(--text-heading) !important;
+  }
+
+  .auth-card label {
+    color: var(--text-main) !important;
+  }
+
+  .auth-card p {
+    color: var(--text-muted) !important;
+  }
+
+  /* Panels */
+  .panel {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+  }
+
+  .panel-heading {
+    background-color: transparent !important;
+    border-bottom-color: var(--border-color) !important;
+    color: var(--text-heading) !important;
+  }
+
+  .panel-body {
+    background-color: var(--bg-card) !important;
+  }
+
+  /* White/Default Buttons - dark mode version */
+  .btn-default,
+  .btn {
+    background-color: #1A1A1A !important;
+    border-color: #4A4A4A !important;
+    color: var(--text-main) !important;
+  }
+
+  .btn-default:hover,
+  .btn:hover {
+    background-color: #2A2A2A !important;
+    border-color: #6B7280 !important;
+    color: var(--text-heading) !important;
+  }
+
+  /* Danger button override */
+  .btn-danger {
+    background-color: transparent !important;
+    border-color: #EF4444 !important;
+    color: #EF4444 !important;
+  }
+
+  .btn-danger:hover {
+    background-color: #EF4444 !important;
+    color: #000000 !important;
+  }
+
+  /* Headings */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--text-heading) !important;
+  }
+
+  /* Alert boxes */
+  .alert {
+    background-color: #1A1A1A !important;
+    border-color: #4A4A4A !important;
+    color: var(--text-main) !important;
+  }
+
+  .alert-danger {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    border-color: #EF4444 !important;
+    color: #FCA5A5 !important;
+  }
+
+  .alert-info {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    border-color: #3B82F6 !important;
+    color: #93C5FD !important;
+  }
+
+  /* Code elements */
+  code {
+    background-color: #1A1A1A !important;
+    color: #E5E7EB !important;
+  }
+
+  /* Links */
+  a {
+    color: #93C5FD !important;
+  }
+
+  a:hover {
+    color: #BFDBFE !important;
+  }
 }
