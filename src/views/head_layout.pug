@@ -3,9 +3,12 @@
   Copyright (C) 2017-2021  Key Networks (https://key-networks.com)
   Licensed under GPLv3 - see LICENSE for details.
 
-mixin nav_item(name, displayName, href)
+mixin nav_item(name, displayName, href, icon)
   li(class=((navigate && navigate.active === name) ? 'active' : ''))
-    a(href=href) #{displayName}
+    a(href=href)
+      if icon
+        span.glyphicon(class=icon, style='margin-right: 12px;')
+      | #{displayName}
 
 mixin json_value(value)
   - if ((!!value ) && (value.constructor == Object || value.constructor == Array))
@@ -24,7 +27,7 @@ html(lang='en')
     link(rel='stylesheet', href=(basePath + '/stylesheets/modern.css'))
     script(src=(basePath + '/jqjs/jquery.min.js'))
     script(src=(basePath + '/bsjs/bootstrap.min.js'))
-  body
+  body(class=body_class)
     nav.navbar.navbar-inverse.navbar-fixed-top
       .container-fluid
         .navbar-header

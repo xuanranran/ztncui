@@ -6,40 +6,32 @@
 extends login_layout
 
 block login_content
+  .auth-wrapper
+    .auth-sidebar
+      div(style='text-align: center;')
+        img(src=basePath + '/images/key-logo.svg', width='120', style='margin-bottom: 24px;')
+        h2(style='color: #fff; margin-bottom: 12px;') ZeroTier 网络控制器
+        p(style='color: #919EAB; font-size: 1.1em;') 安全、易管理、高性能的虚拟网络。
 
-  if error
-     b #{error}
-  else
-    .row
-      .col-sm-12
-        h1= title
+    .auth-main
+      .auth-card
+        div(style='text-align: center; margin-bottom: 32px;')
+          h2(style='color: #212B36;') 登录
+          p(style='color: #637381;') 请输入您的账户凭据以继续。
 
+        if error
+           .alert.alert-danger #{error}
         if message
-          .alert.alert-info
-            strong= message
+           .alert.alert-info #{message}
 
-    form.form-horizontal(method='POST' action='')
-      .form-group.row
-        .col-sm-2
-          label.control-label(for='username') 用户名:
-        .col-sm-10
-          .input-group
-            span.input-group-addon
-              i.glyphicon.glyphicon-user
+        form(method='POST' action='')
+          .form-group
+            label(for='username' style='font-weight: 500; color: #212B36;') 用户名
             input#username.form-control(type='text' name='username' placeholder='请输入用户名')
-
-      .form-group.row
-        .col-sm-2
-          label.control-label(for='password') 密码:
-        .col-sm-10
-          .input-group
-            span.input-group-addon
-              i.glyphicon.glyphicon-lock
+          
+          .form-group
+            label(for='password' style='font-weight: 500; color: #212B36;') 密码
             input#password.form-control(type='password' name='password' placeholder='请输入密码')
-
-      .form-group.row
-        .col-sm-2
-        .col-sm-10
-          button.btn.btn-primary(type='submit') 登录
-          = ' '
-          a.btn.btn-default(href=(basePath + '/') name='cancel' role='button') 取消
+            
+          .form-group(style='margin-top: 32px;')
+            button.btn.btn-primary.btn-block.btn-lg(type='submit' style='width: 100%;') 登录

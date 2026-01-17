@@ -6,10 +6,10 @@
 extends head_layout
 
 block nav_items
-  +nav_item('controller_home', '主页', basePath + '/controller')
-  +nav_item('users', '用户', basePath + '/users')
-  +nav_item('networks', '网络', basePath + '/controller/networks')
-  +nav_item('add_network', '添加网络', basePath + '/controller/network/create')
+  +nav_item('controller_home', '主页', basePath + '/controller', 'glyphicon-home')
+  +nav_item('users', '用户', basePath + '/users', 'glyphicon-user')
+  +nav_item('networks', '网络', basePath + '/controller/networks', 'glyphicon-globe')
+  +nav_item('add_network', '添加网络', basePath + '/controller/network/create', 'glyphicon-plus')
 
 block body_content
   .container(style='margin: 50px auto 20px')
