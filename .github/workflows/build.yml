@@ -20,8 +20,10 @@ jobs:
         with:
           node-version: '14'
 
-      - name: Upgrade npm
-        run: npm install -g npm@9
+      - name: Upgrade npm and install node-gyp
+        run: |
+          npm install -g npm@9
+          npm install -g node-gyp
 
       - name: Install Dependencies
         run: |
