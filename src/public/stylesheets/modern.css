@@ -477,3 +477,102 @@ body.login-page .auth-card h2,
 body.login-page .auth-card label {
   color: var(--text-heading);
 }
+
+/* =========================================
+   Mobile Optimization (Max Width 767px)
+   ========================================= */
+@media (max-width: 767px) {
+
+  /* Container & Layout */
+  body>.container {
+    margin-top: 70px !important;
+    /* Ensure content clears fixed navbar */
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    width: 100% !important;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 1.25rem !important;
+    margin-bottom: 16px !important;
+  }
+
+  h2 {
+    font-size: 1.1rem !important;
+    word-break: break-all;
+  }
+
+  /* Navbar */
+  .navbar-fixed-top {
+    position: fixed !important;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+  }
+
+  .navbar-brand {
+    font-size: 1.1rem !important;
+    padding: 15px 15px !important;
+  }
+
+  /* Cards & Panels */
+  .panel {
+    margin-bottom: 16px !important;
+    border-radius: 12px !important;
+  }
+
+  .panel-body {
+    padding: 16px !important;
+  }
+
+  .panel-heading {
+    padding: 16px !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* Buttons - Stack them on mobile for better touch targets */
+  .btn {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px !important;
+    /* Larger touch area */
+  }
+
+  /* Flex containers in panels should stack */
+  .panel-body div[style*="display: flex"] {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px !important;
+  }
+
+  /* Table Adjustments */
+  .table>thead>tr>th,
+  .table>tbody>tr>td {
+    padding: 10px 12px !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap;
+    /* Prevent wrapping in cells, force scroll */
+  }
+
+  /* Input fields */
+  .form-control {
+    font-size: 16px !important;
+    /* Prevent iOS zoom on focus */
+  }
+
+  /* Hide the "Logout" sidebar button on mobile (use navbar ink if available) */
+  .navbar-right {
+    position: relative !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-top: none !important;
+    padding: 0 !important;
+    bottom: auto !important;
+  }
+}
+
+body.login-page .auth-card h2,
+body.login-page .auth-card label {
+  color: var(--text-heading);
+}
