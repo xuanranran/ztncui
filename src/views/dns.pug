@@ -1,0 +1,57 @@
+//-
+  ztncui - ZeroTier network controller UI
+  Copyright (C) 2017-2021  Key Networks (https://key-networks.com)
+  Licensed under GPLv3 - see LICENSE for details.
+
+extends network_layout
+block title
+block net_content
+  - const dns = network.dns || {};
+  if (!dns.domain && !(dns.servers && dns.servers.length > 0))
+    .row
+      .col-sm-12
+        b 此网络上没有DNS配置.
+  else
+    .row
+      .col-sm-2
+        b 域名:
+      .col-sm-10
+        p= dns.domain
+    .row
+      .col-sm-2
+        b DNS服务器:
+      .col-sm-10
+        .row
+          each server in dns.servers
+            .col-sm-12= server
+
+  .row
+    .col-sm-12
+      h3 更改DNS配置:
+
+  form(method='POST' action='')
+    .form-group.row
+      .col-sm-12
+        label(for='domain') 域名:
+      .col-sm-12
+        input#domain.form-control(type='text' name='domain' value=dns.domain)
+
+    .form-group.row
+      .col-sm-12
+        label(for='servers') DNS服务器:
+      .col-sm-12
+        textarea#servers.form-control(type='text' name='servers' placeholder='(每行一个IP地址)')
+          = !dns.servers ? '' : dns.servers.join('\n')
+
+    .form-group.row
+      .col-sm-12
+        button.btn.btn-primary(type='submit') 提交
+        = ' '
+        a.btn.btn-default(href=('/controller/network/' + network.nwid) name='cancel' role='button') 取消
+
+  if errors
+    .row
+      .col-sm-12
+        ul
+          for err in errors
+            li!= err.msg
