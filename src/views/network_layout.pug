@@ -14,7 +14,7 @@ block content
         block network_title
           h2
             | 网络
-            a(href='/controller/network/' + network.nwid) #{network.name}
+            a(href=(basePath + '/controller/network/' + network.nwid)) #{network.name}
             |  (#{network.nwid}):
         block title
           if title

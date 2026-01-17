@@ -24,7 +24,7 @@ block users_content
     form(method='POST' action='')
       button.btn.btn-danger(type='submit', name='delete' value='delete') 删除 #{user.name}
       = ' '
-      a.btn.btn-default(href='/users', name='cancel', role='button') 取消
+      a.btn.btn-default(href=(basePath + '/users'), name='cancel', role='button') 取消
 
   if errors
     ul

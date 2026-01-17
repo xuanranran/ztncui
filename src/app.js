@@ -22,6 +22,18 @@ const zt_controller = require('./routes/zt_controller');
 
 const app = express();
 
+// Base path support for reverse proxy subpaths (e.g., Nginx location)
+// Example: BASE_PATH=/ztncui -> app is served under http(s)://host/ztncui
+const rawBasePath = process.env.BASE_PATH || '';
+const basePath = (function normalizeBasePath(p) {
+  if (!p) return '';
+  if (!p.startsWith('/')) p = '/' + p;
+  // trim trailing slash except root
+  if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
+  return p;
+})(rawBasePath);
+app.locals.basePath = basePath;
+
 const session_secret = Math.random().toString(36).substring(2,12);
 
 // view engine setup
@@ -29,7 +41,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(helmet());
-app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+// Mount favicon and static assets under base path
+app.use(basePath, favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -40,15 +53,23 @@ app.use(session({
 }));
 app.use(expressValidator());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/fonts', express.static(path.join(__dirname, 'node_modules/bootstrap/fonts')));
-app.use('/bscss', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/css')));
-app.use('/jqjs', express.static(path.join(__dirname, 'node_modules/jquery/dist')));
-app.use('/bsjs', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js')));
+// Inject basePath into templates
+app.use(function(req, res, next) {
+  res.locals.basePath = basePath;
+  next();
+});
 
-app.use('/', index);
-app.use('/users', users);
-app.use('/controller', zt_controller);
+// Static mounts under base path
+app.use(basePath, express.static(path.join(__dirname, 'public')));
+app.use(basePath + '/fonts', express.static(path.join(__dirname, 'node_modules/bootstrap/fonts')));
+app.use(basePath + '/bscss', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/css')));
+app.use(basePath + '/jqjs', express.static(path.join(__dirname, 'node_modules/jquery/dist')));
+app.use(basePath + '/bsjs', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js')));
+
+// Route mounts under base path
+app.use(basePath + '/', index);
+app.use(basePath + '/users', users);
+app.use(basePath + '/controller', zt_controller);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

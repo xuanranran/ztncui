@@ -12,9 +12,9 @@ block net_content
   each value, key in member
     .row
       .col-sm-2
-        a(href=('/controller/network/' + member.nwid + '/member/' + member.address + '/' + key)) #{key}:
+        a(href=(basePath + '/controller/network/' + member.nwid + '/member/' + member.address + '/' + key)) #{key}:
       .col-sm-10
         +json_value(value)
 
-  a.btn.btn-default(href=('/controller/network/' + member.nwid + "#members") name='networks' role='button' style='margin-top: 10px;')
+  a.btn.btn-default(href=(basePath + '/controller/network/' + member.nwid + "#members") name='networks' role='button' style='margin-top: 10px;')
     | 成员

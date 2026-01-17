@@ -10,12 +10,12 @@ block users_content
     each user in users
       tr
         td(width='3%')
-          a(href='/users/' + user.name + '/delete')
+          a(href=(basePath + '/users/' + user.name + '/delete'))
             i.glyphicon.glyphicon-trash
         td(width='15%')
-          a(href='/users/' + user.name + '/password') #{user.name}
+          a(href=(basePath + '/users/' + user.name + '/password')) #{user.name}
         td(width='82%')
-          a(href='/users/' + user.name + '/password') 设置密码
+          a(href=(basePath + '/users/' + user.name + '/password')) 设置密码
 
     else
       .alert.alert-info

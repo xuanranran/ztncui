@@ -19,7 +19,7 @@ block network_title
     |  (#{network.nwid}):
   script.
     $(function() {
-      var nwurl = '/controller/network/#{network.nwid}';
+      var nwurl = '#{basePath}/controller/network/#{network.nwid}';
       var name = !{JSON.stringify(network.name)};
 
       function toggleNameEditor(show) {
@@ -51,7 +51,7 @@ block network_title
     });
 
 block net_content
-  - const nwurl = '/controller/network/' + network.nwid;
+  - const nwurl = basePath + '/controller/network/' + network.nwid;
 
   a.btn.btn-primary(style="margin: 5px" href=(nwurl + '/private') role='button')
     = network.private ? "私有" : "公有"
@@ -156,4 +156,4 @@ block net_content
       .col-sm-10
         +json_value(value)
 
-  a.btn.btn-default(href='/controller/networks' name='networks' role='button' style='margin-top: 10px;') 网络
+  a.btn.btn-default(href=(basePath + '/controller/networks') name='networks' role='button' style='margin-top: 10px;') 网络

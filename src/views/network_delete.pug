@@ -16,7 +16,7 @@ block net_content
     form(method='POST' action='')
       button.btn.btn-danger(type='submit', name='delete') Delete #{network.name} (#{network.nwid})
       = ' '
-      a.btn.btn-default(href='/controller/networks', name='cancel', role='button') 取消
+      a.btn.btn-default(href=(basePath + '/controller/networks'), name='cancel', role='button') 取消
 
   if errors
     ul

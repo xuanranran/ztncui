@@ -26,7 +26,7 @@ block content
         th(width='37%')
           = ''
       each network in networks
-        - const nwurl = '/controller/network/' + network.nwid;
+        - const nwurl = basePath + '/controller/network/' + network.nwid;
         tr
           td
             a(href=nwurl + '/delete')

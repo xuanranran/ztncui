@@ -47,7 +47,7 @@ block net_content
       .col-sm-12
         button.btn.btn-primary(type='submit') 提交
         = ' '
-        a.btn.btn-default(href=('/controller/network/' + network.nwid) name='cancel' role='button') 取消
+        a.btn.btn-default(href=(basePath + '/controller/network/' + network.nwid) name='cancel' role='button') 取消
 
   if errors
     .row
