@@ -19,29 +19,35 @@ block content
   else
     .panel.panel-default
       .panel-body(style='padding: 0 !important;')
-        table.table.table-hover(style='margin: 0;')
-          thead
-            tr
-              th(width='40%') 网络名称
-              th(width='20%') 网络 ID
-              th(width='15%') 类型
-              th(width='25%') 操作
-          tbody
-            each network in networks
-              - const nwurl = basePath + '/controller/network/' + network.nwid;
-              tr(onclick=`window.location='${nwurl}'` style='cursor: pointer;')
-                td
-                  div(style='font-weight: 600; color: var(--primary);') #{network.name}
-                  div(style='font-size: 0.85em; color: var(--text-muted);') 无描述
-                td
-                  code(style='background: transparent; color: inherit; padding: 0;') #{network.nwid}
-                td
-                  span.label.label-success 私有
-                td(onclick='event.stopPropagation();')
-                  a.btn.btn-default.btn-xs(href=nwurl style='margin-right: 8px;') 管理
-                  a.btn.btn-default.btn-xs(href=nwurl + '/easy') 简易设置
-                  a.btn.btn-danger.btn-xs(href=nwurl + '/delete' style='margin-left: 8px;') 
-                    i.glyphicon.glyphicon-trash
+        .table-responsive-wrapper
+          table.table.table-hover(style='margin: 0;')
+            thead
+              tr
+                th(width='40%') 网络名称
+                th(width='20%') 网络 ID
+                th(width='15%') 类型
+                th(width='25%') 操作
+            tbody
+              each network in networks
+                - const nwurl = basePath + '/controller/network/' + network.nwid;
+                tr(onclick=`window.location='${nwurl}'` style='cursor: pointer;')
+                  td
+                    div(style='font-weight: 600; color: var(--primary);') #{network.name}
+                    div(style='font-size: 0.85em; color: var(--text-muted);') 无描述
+                  td
+                    code(style='background: transparent; color: inherit; padding: 0;') #{network.nwid}
+                  td
+                    span.label.label-success 私有
+                  td.action-buttons(onclick='event.stopPropagation();')
+                    a.btn.btn-sm.btn-outline-primary(href=nwurl)
+                      i.glyphicon.glyphicon-cog
+                      span.btn-text 管理
+                    a.btn.btn-sm.btn-outline-secondary(href=nwurl + '/easy')
+                      i.glyphicon.glyphicon-wrench
+                      span.btn-text 简易设置
+                    a.btn.btn-sm.btn-outline-danger(href=nwurl + '/delete')
+                      i.glyphicon.glyphicon-trash
+                      span.btn-text 删除
 
             else
               tr

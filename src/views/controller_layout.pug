@@ -6,12 +6,11 @@
 extends head_layout
 
 block nav_items
-  // Imitating 'Organization' View
-  +nav_item('account', '账户 / 组织', basePath + '/users', 'glyphicon-briefcase')
-  //- Network Groups and Devices are placeholders as they don't exist in ztncui backend yet
-  //- +nav_item('network_groups', '网络组', basePath + '/controller/networks', 'glyphicon-folder-close')
-  +nav_item('controller_home', '网络', basePath + '/controller/networks', 'glyphicon-cloud')
-  //- +nav_item('devices', '设备', basePath + '/controller/networks', 'glyphicon-phone')
+  // Direct navigation items with icons
+  +nav_item('controller_home', '主页', basePath + '/controller', 'glyphicon-home')
+  +nav_item('users', '用户', basePath + '/users', 'glyphicon-user')
+  +nav_item('networks', '网络', basePath + '/controller/networks', 'glyphicon-cloud')
+  +nav_item('create_user', '创建用户', basePath + '/users/create', 'glyphicon-plus-sign')
 
 block body_content
   .container(style='margin: 50px auto 20px')

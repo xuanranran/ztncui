@@ -12,16 +12,16 @@
   --bg-card: #FFFFFF;
   --bg-input: #FFFFFF;
 
-  /* Accents */
-  --primary: #4f3dd1;
-  /* ZeroTier Deep Purple */
-  --primary-hover: #3d2f99;
+  /* Accents - Monochrome Theme */
+  --primary: #1F2937;
+  /* Dark Gray - Main accent */
+  --primary-hover: #111827;
   --secondary: #637381;
 
   /* Sidebar States */
-  --nav-active-bg: #f0effb;
-  /* Light Purple tint */
-  --nav-active-text: #4f3dd1;
+  --nav-active-bg: #F3F4F6;
+  /* Light Gray tint */
+  --nav-active-text: #1F2937;
   --nav-hover-bg: #f9fafb;
 
   /* Text */
@@ -305,16 +305,16 @@ h2 {
 
 /* Hover State */
 .custom-checkbox:hover input~.checkmark {
-  border-color: #4f3dd1 !important;
-  background-color: #f9f9ff !important;
+  border-color: #1F2937 !important;
+  background-color: #F9FAFB !important;
 }
 
 /* Checked State - Box */
 .custom-checkbox input:checked~.checkmark {
-  background-color: #4f3dd1 !important;
+  background-color: #1F2937 !important;
   /* Theme Primary */
-  border-color: #4f3dd1 !important;
-  box-shadow: 0 2px 4px rgba(79, 61, 209, 0.2) !important;
+  border-color: #1F2937 !important;
+  box-shadow: 0 2px 4px rgba(31, 41, 55, 0.2) !important;
 }
 
 /* Checkmark Icon */
@@ -340,7 +340,7 @@ h2 {
 
 /* Focus State */
 .custom-checkbox input:focus~.checkmark {
-  box-shadow: 0 0 0 3px rgba(79, 61, 209, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.15) !important;
 }
 
 /* Network Details Grid */
@@ -382,13 +382,13 @@ h2 {
   color: #fff !important;
   font-weight: 600 !important;
   padding: 8px 16px !important;
-  box-shadow: 0 8px 16px rgba(79, 61, 209, 0.24);
+  box-shadow: 0 8px 16px rgba(31, 41, 55, 0.24);
   transition: all 0.2s;
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover) !important;
-  box-shadow: 0 8px 16px rgba(79, 61, 209, 0.3);
+  box-shadow: 0 8px 16px rgba(31, 41, 55, 0.3);
   transform: translateY(-1px);
 }
 
@@ -591,6 +591,245 @@ body.login-page .auth-card label {
     border-top: none !important;
     padding: 0 !important;
     bottom: auto !important;
+  }
+
+  /* Modern Hamburger Menu Button */
+  .navbar-toggle {
+    background-color: white !important;
+    border: 2px solid #E5E7EB !important;
+    border-radius: 10px !important;
+    padding: 8px 10px !important;
+    margin-top: 12px !important;
+    margin-right: 15px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .navbar-toggle:hover,
+  .navbar-toggle:focus {
+    background-color: #F9FAFB !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 4px 8px rgba(31, 41, 55, 0.15) !important;
+  }
+
+  .navbar-toggle .icon-bar {
+    background-color: var(--text-heading) !important;
+    height: 3px !important;
+    border-radius: 2px !important;
+    transition: all 0.25s ease !important;
+    width: 22px !important;
+  }
+
+  .navbar-toggle .icon-bar+.icon-bar {
+    margin-top: 5px !important;
+  }
+
+  /* Animated X when expanded */
+  .navbar-toggle[aria-expanded="true"] .icon-bar:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+  }
+
+  .navbar-toggle[aria-expanded="true"] .icon-bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .navbar-toggle[aria-expanded="true"] .icon-bar:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+  }
+
+  /* Enhanced Mobile Navbar Collapse */
+  .navbar-collapse {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F9FAFB 100%) !important;
+    border-top: 1px solid #E5E7EB !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    margin-top: 15px !important;
+    border-radius: 12px !important;
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+    overflow: hidden !important;
+  }
+
+  .navbar-collapse.in {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .navbar-nav>li>a {
+    color: var(--text-main) !important;
+    padding: 14px 20px !important;
+    border-radius: 8px !important;
+    margin: 4px 8px !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .navbar-nav>li>a:hover {
+    background-color: #F3F4F6 !important;
+    color: var(--primary) !important;
+    transform: translateX(4px);
+  }
+
+  .navbar-nav>li.active>a {
+    background-color: var(--nav-active-bg) !important;
+    color: var(--nav-active-text) !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* =========================================
+   Table Responsive Wrapper & Scrolling
+   ========================================= */
+.table-responsive-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 0 0 16px 16px;
+}
+
+/* Custom Scrollbar for White Theme */
+.table-responsive-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 4px;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, var(--primary) 0%, #374151 100%);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, var(--primary-hover) 0%, #1F2937 100%);
+}
+
+/* =========================================
+   Modern Action Buttons (White Theme)
+   ========================================= */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+/* Button Base Styles */
+.action-buttons .btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  white-space: nowrap !important;
+  border: 1.5px solid !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  text-decoration: none !important;
+  line-height: 1.4 !important;
+}
+
+/* Outline Primary - Purple */
+.btn-outline-primary {
+  color: var(--primary) !important;
+  background-color: white !important;
+  border-color: var(--primary) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary) !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(31, 41, 55, 0.25) !important;
+}
+
+.btn-outline-primary:active {
+  transform: translateY(0) !important;
+}
+
+/* Outline Secondary - Gray */
+.btn-outline-secondary {
+  color: #6B7280 !important;
+  background-color: white !important;
+  border-color: #D1D5DB !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6B7280 !important;
+  color: white !important;
+  border-color: #6B7280 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.2) !important;
+}
+
+.btn-outline-secondary:active {
+  transform: translateY(0) !important;
+}
+
+/* Outline Danger - Red */
+.btn-outline-danger {
+  color: #EF4444 !important;
+  background-color: white !important;
+  border-color: #EF4444 !important;
+}
+
+.btn-outline-danger:hover {
+  background-color: #EF4444 !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25) !important;
+}
+
+.btn-outline-danger:active {
+  transform: translateY(0) !important;
+}
+
+/* Button Icon Styling */
+.action-buttons .btn i {
+  font-size: 0.9rem;
+}
+
+/* Mobile Optimizations for Buttons */
+@media (max-width: 767px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .action-buttons .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 10px 16px !important;
+  }
+
+  /* Hide button text on very small screens, show only icons */
+  @media (max-width: 480px) {
+    .btn-text {
+      display: none;
+    }
+
+    .action-buttons .btn {
+      padding: 10px !important;
+      justify-content: center !important;
+    }
+
+    .action-buttons .btn i {
+      margin: 0 !important;
+    }
   }
 }
 
