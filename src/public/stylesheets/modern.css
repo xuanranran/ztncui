@@ -729,7 +729,7 @@ body.login-page .auth-card label {
 
   /* Enhanced Mobile Navbar Collapse */
   .navbar-collapse {
-    background: #F8F9FA !important;
+    background: var(--bg-navbar) !important;
     border-top: 1px solid #E0E0E0 !important;
     box-shadow: none !important;
     margin-top: 0 !important;
@@ -1027,7 +1027,7 @@ body.login-page .auth-card label {
   /* Mobile Navbar */
   @media (max-width: 767px) {
     .navbar-collapse {
-      background: #0A0A0A !important;
+      background: var(--bg-navbar) !important;
       border-top: 1px solid #2A2A2A !important;
       box-shadow: none !important;
       margin: 0 !important;
