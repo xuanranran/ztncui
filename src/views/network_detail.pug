@@ -160,8 +160,10 @@ block net_content
 
   // Network Details Card
   .panel.panel-default
-    .panel-heading 网络详细信息
-    .panel-body
+    .panel-heading(style='cursor: pointer;' onclick="$('#network-details-body').collapse('toggle');")
+      | 网络详细信息
+      i.glyphicon.glyphicon-chevron-down.pull-right(style="color: var(--text-muted); font-size: 0.8em;")
+    .panel-body.collapse#network-details-body
       .detail-grid
         each value, key in network
           if key !== 'routes' && key !== 'ipAssignmentPools' && key !== 'rules'
