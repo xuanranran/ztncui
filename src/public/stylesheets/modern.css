@@ -639,14 +639,16 @@ body.login-page .auth-card label {
 
   /* Enhanced Mobile Navbar Collapse */
   .navbar-collapse {
-    background: linear-gradient(180deg, #FFFFFF 0%, #F9FAFB 100%) !important;
-    border-top: 1px solid #E5E7EB !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    background: #F8F9FA !important;
+    /* Light gray background */
+    border-top: 1px solid #E0E0E0 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
     margin-top: 15px !important;
     border-radius: 12px !important;
     margin-left: 10px !important;
     margin-right: 10px !important;
     overflow: hidden !important;
+    padding: 8px 0 !important;
   }
 
   .navbar-collapse.in {
@@ -667,22 +669,48 @@ body.login-page .auth-card label {
 
   .navbar-nav>li>a {
     color: var(--text-main) !important;
-    padding: 14px 20px !important;
+    padding: 12px 16px !important;
     border-radius: 8px !important;
-    margin: 4px 8px !important;
+    margin: 2px 8px !important;
     transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
   }
 
   .navbar-nav>li>a:hover {
-    background-color: #F3F4F6 !important;
+    background-color: #FFFFFF !important;
     color: var(--primary) !important;
-    transform: translateX(4px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
   }
 
   .navbar-nav>li.active>a {
-    background-color: var(--nav-active-bg) !important;
+    background-color: #FFFFFF !important;
     color: var(--nav-active-text) !important;
     font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* Logout button styling - align with main menu*/
+  .navbar-right {
+    position: relative !important;
+    bottom: auto !important;
+    width: 100% !important;
+    margin: 8px 0 4px 0 !important;
+    border-top: 1px solid #E0E0E0 !important;
+    padding-top: 8px !important;
+    left: auto !important;
+  }
+
+  .navbar-right>li>a {
+    color: #DC2626 !important;
+    /* Red color for logout */
+  }
+
+  .navbar-right>li>a:hover {
+    background-color: #FEF2F2 !important;
+    /* Light red background on hover */
+    color: #B91C1C !important;
   }
 }
 

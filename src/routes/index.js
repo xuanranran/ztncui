@@ -20,9 +20,15 @@ function guest_only(req, res, next) {
   }
 }
 
-/* GET home page. */
-router.get('/', guest_only, function (req, res, next) {
-  res.render('front_door', { title: 'ztncui控制器' });
+/* GET home page - redirect to login */
+router.get('/', function (req, res, next) {
+  if (req.session.user) {
+    const basePath = req.app && req.app.locals ? (req.app.locals.basePath || '') : '';
+    res.redirect(basePath + '/controller');
+  } else {
+    const basePath = req.app && req.app.locals ? (req.app.locals.basePath || '') : '';
+    res.redirect(basePath + '/login');
+  }
 });
 
 router.get('/logout', function (req, res) {
