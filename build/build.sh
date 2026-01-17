@@ -129,8 +129,8 @@ fpm -s dir -t deb \
   --deb-group ztncui \
   .
 
-rpm --addsign ../Release/ztncui*rpm
-rpm --checksig ../Release/ztncui*rpm
+# rpm --addsign ../Release/ztncui*rpm
+# rpm --checksig ../Release/ztncui*rpm
 
-createrepo $PKG_DIR
-gpg -u 'Key Networks' --detach-sign --armor $PKG_DIR/repodata/repomd.xml
+# createrepo $PKG_DIR
+# gpg -u 'Key Networks' --detach-sign --armor $PKG_DIR/repodata/repomd.xml
