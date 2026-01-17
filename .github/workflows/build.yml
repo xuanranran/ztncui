@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '21'
+          node-version: '20'
 
       - name: Upgrade npm and install node-gyp
         run: |
