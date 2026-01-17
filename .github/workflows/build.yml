@@ -20,6 +20,9 @@ jobs:
         with:
           node-version: '14'
 
+      - name: Upgrade npm
+        run: npm install -g npm@9
+
       - name: Install Dependencies
         run: |
           sudo apt-get update
