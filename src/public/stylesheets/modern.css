@@ -355,16 +355,17 @@ h2 {
 
 /* Hover State */
 .custom-checkbox:hover input~.checkmark {
-  border-color: #1F2937 !important;
-  background-color: #F9FAFB !important;
+  border-color: #60A5FA !important;
+  /* Light Blue */
+  background-color: #EFF6FF !important;
 }
 
-/* Checked State - Box */
+/* Checked State - Box - Blue Theme */
 .custom-checkbox input:checked~.checkmark {
-  background-color: #1F2937 !important;
-  /* Theme Primary */
-  border-color: #1F2937 !important;
-  box-shadow: 0 2px 4px rgba(31, 41, 55, 0.2) !important;
+  background-color: #3B82F6 !important;
+  /* Blue Primary */
+  border-color: #3B82F6 !important;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3) !important;
 }
 
 /* Checkmark Icon */
@@ -390,7 +391,7 @@ h2 {
 
 /* Focus State */
 .custom-checkbox input:focus~.checkmark {
-  box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
 }
 
 /* Network Details Grid */
@@ -1013,20 +1014,21 @@ body.login-page .auth-card label {
     }
   }
 
-  /* Checkboxes */
+  /* Checkboxes - Blue in dark mode */
   .checkmark {
     background-color: #1A1A1A !important;
     border-color: #4A4A4A !important;
   }
 
   .custom-checkbox:hover input~.checkmark {
-    border-color: #E5E7EB !important;
-    background-color: #1F1F1F !important;
+    border-color: #60A5FA !important;
+    background-color: #1E3A5F !important;
   }
 
   .custom-checkbox input:checked~.checkmark {
-    background-color: #E5E7EB !important;
-    border-color: #E5E7EB !important;
+    background-color: #3B82F6 !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4) !important;
   }
 
   /* Scrollbar */
@@ -1159,5 +1161,55 @@ body.login-page .auth-card label {
 
   a:hover {
     color: #BFDBFE !important;
+  }
+
+  /* Fix white table rows and cell backgrounds */
+  .table>tbody>tr {
+    background-color: transparent !important;
+  }
+
+  .table>tbody>tr>td {
+    background-color: transparent !important;
+  }
+
+  /* Force table cells to respect dark mode */
+  td {
+    background-color: transparent !important;
+  }
+
+  /* Tab navigation */
+  .nav-tabs {
+    border-bottom-color: #2A2A2A !important;
+  }
+
+  .nav-tabs>li>a {
+    color: var(--text-muted) !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+  }
+
+  .nav-tabs>li>a:hover {
+    background-color: #1A1A1A !important;
+    border-color: #4A4A4A !important;
+    color: var(--text-heading) !important;
+  }
+
+  .nav-tabs>li.active>a,
+  .nav-tabs>li.active>a:hover,
+  .nav-tabs>li.active>a:focus {
+    background-color: transparent !important;
+    border-color: #2A2A2A #2A2A2A transparent !important;
+    color: var(--text-heading) !important;
+  }
+
+  /* Detail sections */
+  .detail-item {
+    background-color: transparent !important;
+  }
+
+  /* Well/Box containers */
+  .well {
+    background-color: #1A1A1A !important;
+    border-color: #2A2A2A !important;
   }
 }
