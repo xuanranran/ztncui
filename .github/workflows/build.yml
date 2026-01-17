@@ -58,15 +58,11 @@ jobs:
 
       - name: Listing Release Directory
         run: ls -R Release/
-      
-      - name: Debug PWD and LS
-        run: |
-          pwd
-          ls -la
-          ls -la Release/
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ztncui-packages
-          path: Release/*.{rpm,deb}
+          path: |
+            Release/*.rpm
+            Release/*.deb
