@@ -143,11 +143,12 @@ block net_content
                      span(style='color: var(--text-muted); font-size: 0.9em;') -
                 td(style='text-align: center;')
                    if (peer && peer.latency != -1)
-                     span(style='color: var(--success); font-weight: 500;') 在线 (#{peer.latency}ms)
+                     span(style='color: #22C55E; font-weight: 700;') 在线 
+                     span(style='color: #2196F3; font-weight: 700;') (#{peer.latency}ms)
                    else if (member.id == zt_address)
-                     span(style='color: var(--primary); font-weight: 500;') 控制器
+                     span(style='color: var(--primary); font-weight: 700;') 控制器
                    else
-                     span(style='color: var(--text-muted);') 离线
+                     span(style='color: #FF4842; font-weight: 700;') 离线
                 td(onclick='event.stopPropagation();')
                    a.btn.btn-danger.btn-xs(href=url + '/delete' title='删除成员' style='background: transparent; border: none; color: #919EAB;')
                      i.glyphicon.glyphicon-trash(style='font-size: 1.2em;')
