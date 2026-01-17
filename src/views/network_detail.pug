@@ -69,11 +69,26 @@ block net_content
             a.btn.btn-default(href=(nwurl + '/private')) #{network.private ? "私有" : "公有"}
 
   if (members !== undefined)
+    - 
+      let onlineCount = 0;
+      let offlineCount = 0;
+      let unauthCount = 0;
+      members.forEach(m => {
+        if (m.peer && m.peer.latency != -1) onlineCount++;
+        else offlineCount++;
+        if (!m.authorized) unauthCount++;
+      });
+
     // Members Card
     .panel.panel-default
       .panel-heading 
-        | 成员 
-        span.badge(style='margin-left: 8px; background-color: var(--primary-light); color: var(--primary);') #{members.length}
+        | 成员
+        span.badge(style='margin-left: 12px; background-color: rgba(34, 197, 94, 0.1); color: #22C55E; font-weight: 600;' title='在线设备') 在线 #{onlineCount}
+        span.badge(style='margin-left: 8px; background-color: rgba(255, 72, 66, 0.1); color: #FF4842; font-weight: 600;' title='离线设备') 离线 #{offlineCount}
+        if unauthCount > 0
+          span.badge(style='margin-left: 8px; background-color: rgba(0, 0, 0, 0.08); color: #333; font-weight: 600;' title='未授权设备') 未授权 #{unauthCount}
+        else
+           span.badge(style='margin-left: 8px; background-color: rgba(0, 0, 0, 0.08); color: #333; font-weight: 600;' title='未授权设备') 未授权 #{unauthCount}
       
       script.
         $(function() {
