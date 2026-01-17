@@ -402,12 +402,21 @@ h2 {
   letter-spacing: 0.05em;
   padding: 16px !important;
   border-bottom: none !important;
-  first-child: border-top-left-radius: 8px;
-  last-child: border-top-right-radius: 8px;
+  vertical-align: middle !important;
+  /* Fix header vertical alignment */
+}
+
+.table>thead>tr>th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.table>thead>tr>th:last-child {
+  border-top-right-radius: 8px;
 }
 
 .table>tbody>tr>td {
-  padding: 16px 24px !important;
+  padding: 12px 24px !important;
+  /* Reduce vertical padding slightly */
   border-bottom: 1px solid rgba(145, 158, 171, 0.12) !important;
   vertical-align: middle !important;
   color: var(--text-heading);
@@ -417,6 +426,13 @@ h2 {
 
 .table>tbody>tr:hover {
   background-color: #F9FAFB !important;
+}
+
+/* Compact Inputs in Table */
+.table .form-control {
+  height: 40px !important;
+  /* Reduce from 48px to 40px for better row balance */
+  font-size: 0.9rem !important;
 }
 
 /* Status Chips (Imitation) */
@@ -430,12 +446,13 @@ h2 {
   font-size: 0.75rem;
 }
 
-/* Forms */
+/* Forms (Global) */
 .form-control {
   background-color: var(--bg-input) !important;
   border: 1px solid rgba(145, 158, 171, 0.32) !important;
   border-radius: 8px !important;
   height: 48px !important;
+  /* Default large height for other forms */
   box-shadow: none !important;
   color: var(--text-main) !important;
 }
