@@ -15,7 +15,9 @@ mixin json_value(value)
       code(style='white-space: pre;')= JSON.stringify(value, null, 2)
   - else
       code= value
-
+      
+block vars
+      
 doctype html
 html(lang='en')
   head
