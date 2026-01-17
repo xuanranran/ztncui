@@ -8,11 +8,11 @@ extends controller_layout
 block content
   .row(style='margin-bottom: 24px; align-items: center; display: flex;')
     .col-xs-8
-      h2(style='margin: 0;') Networks
+      h2(style='margin: 0;') 网络
     .col-xs-4.text-right
       a.btn.btn-primary(href=basePath + '/controller/network/create') 
         span.glyphicon.glyphicon-plus
-        |  Create A Network
+        |  创建网络
 
   if error
     .alert.alert-danger #{error}
@@ -22,29 +22,29 @@ block content
         table.table.table-hover(style='margin: 0;')
           thead
             tr
-              th(width='40%') Network Name
-              th(width='20%') Network ID
-              th(width='15%') Type
-              th(width='25%') Actions
+              th(width='40%') 网络名称
+              th(width='20%') 网络 ID
+              th(width='15%') 类型
+              th(width='25%') 操作
           tbody
             each network in networks
               - const nwurl = basePath + '/controller/network/' + network.nwid;
               tr(onclick=`window.location='${nwurl}'` style='cursor: pointer;')
                 td
                   div(style='font-weight: 600; color: var(--primary);') #{network.name}
-                  div(style='font-size: 0.85em; color: var(--text-muted);') No description
+                  div(style='font-size: 0.85em; color: var(--text-muted);') 无描述
                 td
                   code(style='background: transparent; color: inherit; padding: 0;') #{network.nwid}
                 td
-                  span.label.label-success PRIVATE
+                  span.label.label-success 私有
                 td(onclick='event.stopPropagation();')
-                  a.btn.btn-default.btn-xs(href=nwurl style='margin-right: 8px;') Manage
-                  a.btn.btn-default.btn-xs(href=nwurl + '/easy') Easy Setup
+                  a.btn.btn-default.btn-xs(href=nwurl style='margin-right: 8px;') 管理
+                  a.btn.btn-default.btn-xs(href=nwurl + '/easy') 简易设置
                   a.btn.btn-danger.btn-xs(href=nwurl + '/delete' style='margin-left: 8px;') 
                     i.glyphicon.glyphicon-trash
 
             else
               tr
                 td(colspan='4' style='text-align: center; padding: 40px;')
-                  div(style='color: var(--text-muted); margin-bottom: 16px;') No networks found.
-                  a.btn.btn-primary(href=basePath + '/controller/network/create') Create your first network
+                  div(style='color: var(--text-muted); margin-bottom: 16px;') 未找到网络。
+                  a.btn.btn-primary(href=basePath + '/controller/network/create') 创建您的第一个网络

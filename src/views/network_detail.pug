@@ -53,98 +53,99 @@ block network_title
 block net_content
   - const nwurl = basePath + '/controller/network/' + network.nwid;
 
-  a.btn.btn-primary(style="margin: 5px" href=(nwurl + '/private') role='button')
-    = network.private ? "私有" : "公有"
-  a.btn.btn-primary(style="margin: 5px" href=(nwurl + '/easy') role='button') 简易安装
-  a.btn.btn-primary(style="margin: 5px" href=(nwurl + '/routes') role='button') 路由
-  a.btn.btn-primary(style="margin: 5px" href=(nwurl + '/ipAssignmentPools') role='button') 地址分配池
-  a.btn.btn-primary(style="margin: 5px" href=(nwurl + '/v4AssignMode') role='button') IPv4 分配模式
-  a.btn.btn-primary(style="margin: 5px" href=(nwurl + '/v6AssignMode') role='button') IPv6 分配模式
-  a.btn.btn-primary(style="margin: 5px" href=(nwurl + '/dns') role='button') DNS
+  // Settings Card
+  .panel.panel-default
+    .panel-heading 设置
+    .panel-body
+      .row
+        .col-md-12
+          div(style='display: flex; gap: 10px; flex-wrap: wrap;')
+            a.btn.btn-default(href=(nwurl + '/routes')) 路由
+            a.btn.btn-default(href=(nwurl + '/ipAssignmentPools')) 地址分配池
+            a.btn.btn-default(href=(nwurl + '/v4AssignMode')) IPv4 分配模式
+            a.btn.btn-default(href=(nwurl + '/v6AssignMode')) IPv6 分配模式
+            a.btn.btn-default(href=(nwurl + '/dns')) DNS
+            a.btn.btn-default(href=(nwurl + '/easy')) 简易设置
+            a.btn.btn-default(href=(nwurl + '/private')) #{network.private ? "私有" : "公有"}
 
   if (members !== undefined)
-    script.
-      $(function() {
-        const url = "#{nwurl}/members";
-        $('.authCheck').on('click', function() {
-          $.post(url, {'id': this.value, 'auth': this.checked});
+    // Members Card
+    .panel.panel-default
+      .panel-heading 
+        | 成员 
+        span.badge(style='margin-left: 8px; background-color: var(--primary-light); color: var(--primary);') #{members.length}
+      
+      script.
+        $(function() {
+          const url = "#{nwurl}/members";
+          $('.authCheck').on('change', function() {
+            // Update status text immediately for better UX
+            const statusSpan = $(this).closest('tr').find('.status-text');
+            if(this.checked) {
+              statusSpan.removeClass('status-pending').addClass('status-authorized').text('已授权');
+            } else {
+              statusSpan.removeClass('status-authorized').addClass('status-pending').text('未授权');
+            }
+            $.post(url, {'id': this.value, 'auth': this.checked});
+          });
+          $('.bridgeCheck').on('click', function() {
+            $.post(url, {'id': this.value, 'activeBridge': this.checked});
+          });
+          $('.text').on('change', function() {
+            $.post(url, {'id': this.name, 'name': this.value});
+          });
         });
-        $('.bridgeCheck').on('click', function() {
-          $.post(url, {'id': this.value, 'activeBridge': this.checked});
-        });
-        $('.text').on('change', function() {
-          $.post(url, {'id': this.name, 'name': this.value});
-        });
-      });
-    h3#members 成员 (#{members.length})
-    form(method='POST' action='')
-      table.table.table-responsive.table-striped.table-hover
-        tr
-          td(width='3%')
-            = ''
-          td(width='20%')
-            | 成员名称
-          td(width='10%')
-            | 成员ID
-          td(width='10%')
-            | 经授权的
-          td(width='10%')
-            | 主动桥接
-          td(width='17%')
-            | IP分配
-          td(width='17%')
-            | 节点状态
-          td(width='13%')
-            | 节点地址 / 延迟
-        each member in members
-          - const peer = member.peer;
-          tr
-            - const url = nwurl + '/member/' + member.id
-            td
-              a(href=url + '/delete')
-                i.glyphicon.glyphicon-trash
-            td
-              input.form-control.text(type='text' name=member.id value=member.name)
-            td
-              a(href=url) #{member.id}
-            td
-              input.authCheck(type='checkbox' value=member.id checked=(member.authorized? true : false))
-            td
-              input.bridgeCheck(type='checkbox' value=member.id checked=(member.activeBridge? true : false))
-            td
-              each ipAssignment in member.ipAssignments
-                a(href=nwurl + '/member/' + member.id + '/ipAssignments')
-                  each digit in ipAssignment
-                    = digit
-                  = ' '
-              else
-                a(href=nwurl + '/member/' + member.id + '/ipAssignments')
-                  | IP分配
-            td
-              if (peer && peer.latency != -1 && peer.versionMajor != -1)
-                if (peer.latency != -1)
-                  span(style='color: green;')
-                    | 在线 (v#{peer.version})
-                else
-                  span(style='color: orange;')
-                    | 转发 (v#{peer.version})
-              else if (member.id == zt_address)
-                span(style='color: green;') 控制器
-              else
-                span(style='color: red;') 离线
-            td
-              if (peer)
-                each path in peer.paths
-                  - const [ip, port] = path.address.split('/');
-                  = ip
-                  span(style='color: gray;') /#{port}
-                  = ' '
-                if (peer.latency != -1)
-                  br
-                  | (#{peer.latency} ms)
-        else
-          .alert.alert-info
-            strong 此网络上没有成员-请用户加入 #{network.nwid}
+
+      .table-responsive
+        table.table.table-hover
+          thead
+            tr
+              th(width='20%') 名称 / 描述
+              th(width='15%') 地址 (ID)
+              th(width='15%') 授权状态
+              th(width='25%') 托管 IP
+              th(width='15%') 最后可见
+              th(width='5%')
+          tbody
+            each member in members
+              - const peer = member.peer;
+              - const url = nwurl + '/member/' + member.id
+              tr(onclick=`window.location='${url}'` style='cursor: pointer;')
+                td
+                   input.form-control.text(type='text' name=member.id value=member.name onclick='event.stopPropagation();' placeholder='为设备命名')
+                td
+                   div(style='font-family: var(--font-mono); color: var(--text-heading);') #{member.id}
+                   if peer
+                     div(style='font-size: 0.8em; color: var(--text-muted);') v#{peer.version}
+                td(onclick='event.stopPropagation();')
+                   label.status-pill(class=(member.authorized ? 'status-authorized' : 'status-pending') style='cursor: pointer;')
+                     input.authCheck(type='checkbox' value=member.id checked=(member.authorized? true : false) style='display: none;')
+                     span.status-text #{member.authorized ? '已授权' : '授权'}
+                td
+                   each ipAssignment in member.ipAssignments
+                     span.ip-chip
+                       each digit in ipAssignment
+                         = digit
+                   else
+                     span(style='color: var(--text-muted); font-size: 0.9em;') 未分配 IP
+                td
+                   if (peer && peer.latency != -1)
+                     span(style='color: var(--success); font-weight: 500;') 在线 (#{peer.latency}ms)
+                   else if (member.id == zt_address)
+                     span(style='color: var(--primary); font-weight: 500;') 控制器
+                   else
+                     span(style='color: var(--text-muted);') 离线
+                td(onclick='event.stopPropagation();')
+                   a.btn.btn-danger.btn-xs(href=url + '/delete' title='删除成员')
+                     i.glyphicon.glyphicon-trash
+            else
+              tr
+                td(colspan='6' style='text-align: center; padding: 40px;')
+                  div(style='color: var(--text-muted);') 暂无设备加入此网络。
+                  div(style='margin-top: 8px;') 分享网络 ID 
+                    code #{network.nwid} 
+                    |  以连接设备。
+
 
   a.btn.btn-default(href='' name='refresh' role='button') 刷新
 
