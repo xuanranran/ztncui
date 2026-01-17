@@ -425,22 +425,61 @@ h2 {
   padding: 24px !important;
 }
 
-/* Primary Button (Create Network) */
+/* =========================================
+   Unified Button Styles
+   ========================================= */
+
+/* Base button styles - apply to all buttons */
+.btn {
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s ease !important;
+  border-width: 2px !important;
+  cursor: pointer !important;
+}
+
+/* Primary Button */
 .btn-primary {
   background-color: var(--primary) !important;
-  border: none !important;
-  border-radius: 8px !important;
+  border-color: var(--primary) !important;
   color: #fff !important;
-  font-weight: 600 !important;
-  padding: 8px 16px !important;
-  box-shadow: 0 8px 16px rgba(31, 41, 55, 0.24);
-  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(31, 41, 55, 0.2) !important;
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover) !important;
-  box-shadow: 0 8px 16px rgba(31, 41, 55, 0.3);
-  transform: translateY(-1px);
+  border-color: var(--primary-hover) !important;
+  box-shadow: 0 4px 12px rgba(31, 41, 55, 0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Default/Secondary Button */
+.btn-default {
+  background-color: transparent !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+
+.btn-default:hover {
+  background-color: var(--nav-hover-bg) !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+/* Danger Button */
+.btn-danger {
+  background-color: transparent !important;
+  border-color: #EF4444 !important;
+  color: #EF4444 !important;
+}
+
+.btn-danger:hover {
+  background-color: #EF4444 !important;
+  border-color: #EF4444 !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
 }
 
 /* Table Style */
@@ -1092,31 +1131,31 @@ body.login-page .auth-card label {
     background-color: var(--bg-card) !important;
   }
 
-  /* White/Default Buttons - dark mode version */
-  .btn-default,
-  .btn {
-    background-color: #1A1A1A !important;
+  /* White/Default Buttons - dark mode unified */
+  .btn-default {
+    background-color: transparent !important;
     border-color: #4A4A4A !important;
     color: var(--text-main) !important;
   }
 
-  .btn-default:hover,
-  .btn:hover {
-    background-color: #2A2A2A !important;
-    border-color: #6B7280 !important;
-    color: var(--text-heading) !important;
+  .btn-default:hover {
+    background-color: #1A1A1A !important;
+    border-color: #93C5FD !important;
+    color: #93C5FD !important;
   }
 
-  /* Danger button override */
-  .btn-danger {
-    background-color: transparent !important;
-    border-color: #EF4444 !important;
-    color: #EF4444 !important;
-  }
-
-  .btn-danger:hover {
-    background-color: #EF4444 !important;
+  /* Primary buttons in dark mode */
+  .btn-primary {
+    background-color: #F9FAFB !important;
+    border-color: #F9FAFB !important;
     color: #000000 !important;
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .btn-primary:hover {
+    background-color: #E5E7EB !important;
+    border-color: #E5E7EB !important;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15) !important;
   }
 
   /* Headings */
