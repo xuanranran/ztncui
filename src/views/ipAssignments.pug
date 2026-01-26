@@ -30,13 +30,16 @@ block net_content
             th IP地址
 
           each ipAssignment, index in member.ipAssignments
+            - const isIPv6 = ipAssignment.includes(':');
             tr
               td(width='3%')
                 a.btn.btn-link(role='button' href=(basePath + '/controller/network/' + network.nwid + '/member/' + member.id + '/ipAssignments/' + index + '/delete'))
                   i.glyphicon.glyphicon-trash
               td
-                each digit in ipAssignment
-                  = digit
+                span(style=`font-family: var(--font-mono); padding: 4px 12px; border-radius: 4px; background: ${isIPv6 ? 'rgba(76, 175, 80, 0.1)' : 'rgba(33, 150, 243, 0.1)'}; color: ${isIPv6 ? '#4CAF50' : '#2196F3'}; display: inline-flex; align-items: center; gap: 6px;`)
+                  if isIPv6
+                    span 🌐
+                  | #{ipAssignment}
 
           tr
             td
