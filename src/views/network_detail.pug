@@ -144,10 +144,15 @@ block net_content
                        span.checkmark
                      span.status-text(style='font-size: 0.8em; min-width: auto; color: var(--text-muted);') #{member.authorized ? '已授权' : '未授权'}
                 td(style='text-align: center;')
-                   each ipAssignment in member.ipAssignments
-                     div.ip-copy-container(onclick=`copyToClipboard('${ipAssignment}')` title='点击复制' style='display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; padding: 2px;')
-                       span.ip-chip #{ipAssignment}
-                       i.glyphicon.glyphicon-copy(style='font-size: 0.85em; color: var(--text-muted); opacity: 0.7;')
+                   if member.ipAssignments && member.ipAssignments.length > 0
+                     each ipAssignment in member.ipAssignments
+                       - const isIPv6 = ipAssignment.includes(':');
+                       div.ip-copy-container(onclick=`copyToClipboard('${ipAssignment}')` title='点击复制' style='display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; padding: 2px;')
+                         span.ip-chip(style=`font-family: var(--font-mono); font-size: ${isIPv6 ? '0.75em' : '0.85em'}; padding: 2px 8px; border-radius: 4px; background: ${isIPv6 ? 'rgba(76, 175, 80, 0.1)' : 'rgba(33, 150, 243, 0.1)'}; color: ${isIPv6 ? '#4CAF50' : '#2196F3'}; display: inline-flex; align-items: center; gap: 4px;`)
+                           if isIPv6
+                             span(style='font-size: 0.9em;') 🌐
+                           | #{ipAssignment}
+                         i.glyphicon.glyphicon-copy(style='font-size: 0.85em; color: var(--text-muted); opacity: 0.7;')
                    else
                      span(style='color: var(--text-muted); font-size: 0.9em;') 未分配 IP
                 td(style='text-align: center;')
