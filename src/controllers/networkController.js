@@ -284,14 +284,13 @@ exports.ipAssignmentPools = async function (req, res) {
     whence: ''
   }
 
+  req.sanitize('ipRangeStart').trim();
+  req.sanitize('ipRangeEnd').trim();
+
   req.checkBody('ipRangeStart', '需要IP起始地址').notEmpty();
   req.checkBody('ipRangeStart', 'IP起始地址需要有效的IPv4或IPv6地址').isIP();
-  req.sanitize('ipRangeStart').escape();
-  req.sanitize('ipRangeStart').trim();
   req.checkBody('ipRangeEnd', '需要IP结束地址').notEmpty();
   req.checkBody('ipRangeEnd', 'IP结束地址需要有效的IPv4或IPv6地址').isIP();
-  req.sanitize('ipRangEnd').escape();
-  req.sanitize('ipRangEnd').trim();
 
   const errors = req.validationErrors();
 
@@ -348,6 +347,38 @@ exports.generateIPv6Pool = async function (req, res) {
     res.status(500).json({
       success: false,
       error: '生成 IPv6 池失败'
+    });
+  }
+};
+
+// Generate random IPv4 pool (10.x.x.x)
+function generateIPv4Pool() {
+  // Generate random second octet (0-255)
+  const second = Math.floor(Math.random() * 256);
+  // Generate random third octet (0-255) 
+  const third = Math.floor(Math.random() * 256);
+
+  return {
+    ipRangeStart: `10.${second}.${third}.1`,
+    ipRangeEnd: `10.${second}.${third}.254`
+  };
+}
+
+// API endpoint to generate IPv4 pool
+exports.generateIPv4Pool = async function (req, res) {
+  try {
+    const pool = generateIPv4Pool();
+
+    res.json({
+      success: true,
+      pool: pool,
+      message: '已生成 IPv4 地址池 (10.x.x.x)'
+    });
+  } catch (err) {
+    console.error('生成 IPv4 池时出错:', err);
+    res.status(500).json({
+      success: false,
+      error: '生成 IPv4 池失败'
     });
   }
 };

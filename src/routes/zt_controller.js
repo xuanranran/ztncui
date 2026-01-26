@@ -85,6 +85,9 @@ router.get('/network/:nwid/member/:id/ipAssignments/:index/delete', restrict, ne
 // POST request for member ipAssignment add
 router.post('/network/:nwid/member/:id/ipAssignments', restrict, networkController.assign_ip);
 
+// GET request to generate IPv4 pool
+router.get('/network/:nwid/api/generateIPv4Pool', restrict, networkController.generateIPv4Pool);
+
 // GET request to generate IPv6 pool
 router.get('/network/:nwid/api/generateIPv6Pool', restrict, networkController.generateIPv6Pool);
 

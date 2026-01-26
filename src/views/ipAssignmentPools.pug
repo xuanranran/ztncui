@@ -25,6 +25,24 @@ block net_content
           }
         });
       });
+
+      $('#generateIPv4Btn').on('click', function() {
+        const nwid = '#{network.nwid}';
+        $.ajax({
+          url: '#{basePath}/controller/network/' + nwid + '/api/generateIPv4Pool',
+          method: 'GET',
+          success: function(response) {
+            if (response.success) {
+              $('#ipRangeStart').val(response.pool.ipRangeStart);
+              $('#ipRangeEnd').val(response.pool.ipRangeEnd);
+              alert(response.message || 'IPv4 地址池已生成');
+            }
+          },
+          error: function() {
+            alert('生成 IPv4 池失败，请重试');
+          }
+        });
+      });
     });
 
   .row
@@ -59,12 +77,19 @@ block net_content
     .col-sm-12
       h3 添加新的IP分配池
 
-  .row(style='margin-bottom: 15px;')
-    .col-sm-12
-      button#generateIPv6Btn.btn.btn-success(type='button')
-        i.glyphicon.glyphicon-flash
-        |  自动生成 IPv6 池 (RFC4193 ULA)
-      span(style='margin-left: 10px; color: var(--text-muted); font-size: 0.9em;') 基于网络 ID 自动生成唯一的 IPv6 地址范围
+  .row(style='margin-bottom: 20px;')
+    .col-sm-12(style='display: flex; gap: 10px; flex-wrap: wrap;')
+      div
+        button#generateIPv4Btn.btn.btn-primary(type='button')
+          i.glyphicon.glyphicon-random
+          |  随机生成 IPv4 池
+        div(style='margin-top: 5px; color: var(--text-muted); font-size: 0.85em;') 生成随机 10.x.x.x 局域网范围
+      
+      div
+        button#generateIPv6Btn.btn.btn-success(type='button')
+          i.glyphicon.glyphicon-flash
+          |  自动生成 IPv6 池
+        div(style='margin-top: 5px; color: var(--text-muted); font-size: 0.85em;') 基于网络 ID 生成 RFC4193 ULA IPv6 范围
 
   form(method='POST' action=(basePath + '/controller/network/' + network.nwid + '/ipAssignmentPools'))
     .form-group.row
