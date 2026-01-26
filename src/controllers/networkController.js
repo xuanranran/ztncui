@@ -115,17 +115,32 @@ exports.network_members_status = async function (req, res) {
     ]);
 
     // Return member status data
-    const memberStatus = members.map(member => ({
-      id: member.id,
-      name: member.name,
-      authorized: member.authorized,
-      ipAssignments: member.ipAssignments,
-      online: member.peer && member.peer.latency != -1,
-      latency: member.peer ? member.peer.latency : -1,
-      version: member.peer ? member.peer.version : null,
-      paths: member.peer && member.peer.paths ? member.peer.paths.map(p => p.address) : [],
-      isController: member.id == zt_address
-    }));
+    const memberStatus = members.map(member => {
+      // Check if device is online
+      // Method 1: Has active peer connection
+      const hasPeerConnection = member.peer && member.peer.latency != -1;
+
+      // Method 2: Recently seen (within last 2 minutes)
+      const now = Date.now();
+      const lastSeen = member.lastSeen || member.lastAuthorizedTime || 0;
+      const recentlyActive = (now - lastSeen) < 120000; // 2 minutes
+
+      // Device is online if it has peer connection OR was recently active AND authorized
+      const isOnline = hasPeerConnection || (recentlyActive && member.authorized);
+
+      return {
+        id: member.id,
+        name: member.name,
+        authorized: member.authorized,
+        ipAssignments: member.ipAssignments,
+        online: isOnline,
+        latency: member.peer ? member.peer.latency : -1,
+        version: member.peer ? member.peer.version : null,
+        paths: member.peer && member.peer.paths ? member.peer.paths.map(p => p.address) : [],
+        isController: member.id == zt_address,
+        lastSeen: lastSeen
+      };
+    });
 
     res.json({ success: true, members: memberStatus });
   } catch (err) {

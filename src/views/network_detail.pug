@@ -157,11 +157,15 @@ block net_content
                    else
                      span(style='color: var(--text-muted); font-size: 0.9em;') -
                 td(style='text-align: center;')
-                   if (peer && peer.latency != -1)
-                     span(style='color: #22C55E; font-weight: 700;') 在线 
-                     span(style='color: #2196F3; font-weight: 700;') (#{peer.latency}ms)
-                   else if (member.id == zt_address)
+                   - const hasActivePeer = peer && peer.latency != -1;
+                   - const hasIPAssignment = member.ipAssignments && member.ipAssignments.length > 0;
+                   - const isOnline = hasActivePeer || (member.authorized && hasIPAssignment);
+                   if (member.id == zt_address)
                      span(style='color: var(--primary); font-weight: 700;') 控制器
+                   else if (isOnline)
+                     span(style='color: #22C55E; font-weight: 700;') 在线
+                     if hasActivePeer
+                       span(style='color: #2196F3; font-weight: 700;')  (#{peer.latency}ms)
                    else
                      span(style='color: #FF4842; font-weight: 700;') 离线
                 td(onclick='event.stopPropagation();')
