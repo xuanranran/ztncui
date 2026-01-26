@@ -231,3 +231,95 @@ block net_content
         }, 2000);
       }
     }
+
+    // Real-time member status updates
+    $(function() {
+      const nwid = '#{network.nwid}';
+      const apiUrl = '#{basePath}/controller/network/' + nwid + '/api/members/status';
+      let updateInterval;
+
+      function updateMemberStatus() {
+        $.ajax({
+          url: apiUrl,
+          method: 'GET',
+          success: function(response) {
+            if (response.success && response.members) {
+              response.members.forEach(function(member) {
+                const row = $('tr').filter(function() {
+                  return $(this).find('input[name="' + member.id + '"]').length > 0;
+                });
+
+                if (row.length > 0) {
+                  // Update status column (6th td)
+                  const statusCell = row.find('td').eq(5);
+                  let statusHtml;
+                  
+                  if (member.isController) {
+                    statusHtml = '<span style="color: var(--primary); font-weight: 700;">控制器</span>';
+                  } else if (member.online && member.latency >= 0) {
+                    statusHtml = '<span style="color: #22C55E; font-weight: 700;">在线</span> ' +
+                                '<span style="color: #2196F3; font-weight: 700;">(' + member.latency + 'ms)</span>';
+                  } else {
+                    statusHtml = '<span style="color: #FF4842; font-weight: 700;">离线</span>';
+                  }
+                  
+                  statusCell.html(statusHtml);
+
+                  // Update version if peer exists
+                  if (member.version) {
+                    row.find('td').eq(1).find('div[style*="font-size: 0.75em"]').html('v' + member.version);
+                  }
+
+                  // Update physical addresses
+                  if (member.paths && member.paths.length > 0) {
+                    const pathsHtml = member.paths.map(path => 
+                      '<div style="font-family: var(--font-mono); font-size: 0.85em; color: var(--text-muted);">' + path + '</div>'
+                    ).join('');
+                    row.find('td').eq(4).html(pathsHtml);
+                  }
+                }
+              });
+
+              // Update badge counts
+              let onlineCount = 0;
+              let offlineCount = 0;
+              let unauthCount = 0;
+              
+              response.members.forEach(function(m) {
+                if (m.online) onlineCount++;
+                else offlineCount++;
+                if (!m.authorized) unauthCount++;
+              });
+
+              $('.panel-heading .badge').eq(0).text('在线 ' + onlineCount);
+              $('.panel-heading .badge').eq(1).text('离线 ' + offlineCount);
+              $('.panel-heading .badge').eq(2).text('未授权 ' + unauthCount);
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error('更新成员状态失败:', error);
+          }
+        });
+      }
+
+      // Initial update
+      updateMemberStatus();
+
+      // Update every 5 seconds
+      updateInterval = setInterval(updateMemberStatus, 5000);
+
+      // Stop updates when page is hidden or user navigates away
+      $(document).on('visibilitychange', function() {
+        if (document.hidden) {
+          clearInterval(updateInterval);
+        } else {
+          updateMemberStatus();
+          updateInterval = setInterval(updateMemberStatus, 5000);
+        }
+      });
+
+      // Clean up on page unload
+      $(window).on('beforeunload', function() {
+        clearInterval(updateInterval);
+      });
+    });

@@ -85,6 +85,8 @@ router.get('/network/:nwid/member/:id/ipAssignments/:index/delete', restrict, ne
 // POST request for member ipAssignment add
 router.post('/network/:nwid/member/:id/ipAssignments', restrict, networkController.assign_ip);
 
+// GET request for member status (JSON API for real-time updates) - must be before :object route
+router.get('/network/:nwid/api/members/status', restrict, networkController.network_members_status);
 
 // GET request for any network object
 router.get('/network/:nwid/:object', restrict, networkController.network_object);
