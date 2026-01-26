@@ -320,6 +320,39 @@ exports.ipAssignmentPools = async function (req, res) {
   }
 }
 
+// Generate RFC4193 ULA IPv6 pool from network ID  
+function generateIPv6ULAPool(networkID) {
+  // Use network ID to generate unique fd00::/8 ULA prefix
+  // Format: fd + first 10 hex chars of network ID = fd + 40-bit global ID
+  const prefix = 'fd' + networkID.substring(0, 10);
+
+  return {
+    ipRangeStart: `${prefix}:9993::1`,
+    ipRangeEnd: `${prefix}:9993:ffff:ffff:ffff:ffff`
+  };
+}
+
+// API endpoint to generate IPv6 pool
+exports.generateIPv6Pool = async function (req, res) {
+  try {
+    const nwid = req.params.nwid;
+    const pool = generateIPv6ULAPool(nwid);
+
+    res.json({
+      success: true,
+      pool: pool,
+      message: '已生成 RFC4193 ULA IPv6 地址池'
+    });
+  } catch (err) {
+    console.error('生成 IPv6 池时出错:', err);
+    res.status(500).json({
+      success: false,
+      error: '生成 IPv6 池失败'
+    });
+  }
+};
+
+
 isValidPrefix = function (str, max) {
   const num = Math.floor(Number(str));
   return String(num) == str && num >= 0 && num <= max;

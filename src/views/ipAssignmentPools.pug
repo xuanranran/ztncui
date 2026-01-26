@@ -6,37 +6,80 @@
 extends network_layout
 block title
 block net_content
-  .row
-    .col-sm-12
-      table.table.table-responsive.table-striped.table-hover
-        tr
-          th
-          th IP范围开始
-          th IP范围结束
-          each ipAssignmentPool in network.ipAssignmentPools
-            tr
-              td(width='3%')
-                a(href=(basePath + '/controller/network/' + network.nwid + '/ipAssignmentPools/' + ipAssignmentPool.ipRangeStart + '/' + ipAssignmentPool.ipRangeEnd + '/delete'))
-                  i.glyphicon.glyphicon-trash
-              td= ipAssignmentPool.ipRangeStart
-              td= ipAssignmentPool.ipRangeEnd
+  script.
+    $(function() {
+      $('#generateIPv6Btn').on('click', function() {
+        const nwid = '#{network.nwid}';
+        $.ajax({
+          url: '#{basePath}/controller/network/' + nwid + '/api/generateIPv6Pool',
+          method: 'GET',
+          success: function(response) {
+            if (response.success) {
+              $('#ipRangeStart').val(response.pool.ipRangeStart);
+              $('#ipRangeEnd').val(response.pool.ipRangeEnd);
+              alert(response.message || 'IPv6 地址池已生成');
+            }
+          },
+          error: function() {
+            alert('生成 IPv6 池失败，请重试');
+          }
+        });
+      });
+    });
 
   .row
     .col-sm-12
-      h3 添加新的IP分配池:
+      h3 当前 IP 分配池
+      if network.ipAssignmentPools && network.ipAssignmentPools.length > 0
+        table.table.table-responsive.table-striped.table-hover
+          tr
+            th
+            th IP范围开始
+            th IP范围结束
+            th 类型
+          each ipAssignmentPool in network.ipAssignmentPools
+            - const isIPv6 = ipAssignmentPool.ipRangeStart.includes(':');
+            tr
+              td(width='3%')
+                a(href=(basePath + '/controller/network/' + network.nwid + '/ipAssignmentPools/' + ipAssignmentPool.ipRangeStart + '/' + ipAssignmentPool.ipRangeEnd + '/delete'))
+                  i.glyphicon.glyphicon-trash  
+              td
+                span(style=`font-family: var(--font-mono); color: ${isIPv6 ? '#4CAF50' : '#2196F3'};`)= ipAssignmentPool.ipRangeStart
+              td
+                span(style=`font-family: var(--font-mono); color: ${isIPv6 ? '#4CAF50' : '#2196F3'};`)= ipAssignmentPool.ipRangeEnd
+              td
+                if isIPv6
+                  span.label.label-success 🌐 IPv6
+                else
+                  span.label.label-primary IPv4
+      else
+        p(style='color: var(--text-muted); margin: 20px 0;') 暂无 IP 分配池
+
+  .row
+    .col-sm-12
+      h3 添加新的IP分配池
+
+  .row(style='margin-bottom: 15px;')
+    .col-sm-12
+      button#generateIPv6Btn.btn.btn-success(type='button')
+        i.glyphicon.glyphicon-flash
+        |  自动生成 IPv6 池 (RFC4193 ULA)
+      span(style='margin-left: 10px; color: var(--text-muted); font-size: 0.9em;') 基于网络 ID 自动生成唯一的 IPv6 地址范围
 
   form(method='POST' action=(basePath + '/controller/network/' + network.nwid + '/ipAssignmentPools'))
     .form-group.row
       .col-sm-2
         label(for='ipRangeStart') IP范围开始:
       .col-sm-12
-        input#ipRangeStart.form-control(type='text' name='ipRangeStart' placeholder='IP范围开始地址' value=(undefined===ipAssignmentPool? '' : ipAssignmentPool.ipRangeStart))
+        input#ipRangeStart.form-control(type='text' name='ipRangeStart' placeholder='例如: 10.0.0.1 或 fd00::1' value=(undefined===ipAssignmentPool? '' : ipAssignmentPool.ipRangeStart))
+        small.form-text.text-muted 支持 IPv4 和 IPv6 地址
 
     .form-group.row
       .col-sm-2
         label(for='ipRangeEnd') IP范围结束:
       .col-sm-12
-        input#ipRangeEnd.form-control(type='text' name='ipRangeEnd' placeholder='IP范围结束地址' value=(undefined===ipAssignmentPool? '' : ipAssignmentPool.ipRangeEnd))
+        input#ipRangeEnd.form-control(type='text' name='ipRangeEnd' placeholder='例如: 10.0.0.254 或 fd00::ffff' value=(undefined===ipAssignmentPool? '' : ipAssignmentPool.ipRangeEnd))
+        small.form-text.text-muted 支持 IPv4 和 IPv6 地址
 
     .form-group.row
       .col-sm-12

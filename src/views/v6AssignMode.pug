@@ -26,7 +26,12 @@ block net_content
       tr
         td
           input#ztCheckBox.checkbox(type='checkbox' checked=(network.v6AssignMode['zt']? true : false))
-        td 从IP分配池自动分配
+        td 
+          | 从IP分配池自动分配
+          div(style='font-size: 0.85em; color: var(--text-muted); margin-top: 4px;')
+            | ℹ️ 需要先
+            a(href=(basePath + '/controller/network/' + network.nwid + '/ipAssignmentPools') style='margin-left: 4px;') 配置 IPv6 地址池
+            |  才能使用此模式
 
   if errors
     ul
