@@ -311,6 +311,56 @@ body.login-page .form-control {
   display: block !important;
 }
 
+.member-sort-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-heading) !important;
+  text-decoration: none !important;
+}
+
+.member-sort-link:hover {
+  color: var(--primary) !important;
+}
+
+.member-row-pinned > td {
+  background: rgba(33, 150, 243, 0.055);
+}
+
+.member-name-cell {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.member-pin-button {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(145, 158, 171, 0.28);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  transition: color var(--ease), border-color var(--ease), background-color var(--ease), transform var(--ease);
+}
+
+.member-pin-button:hover {
+  color: var(--primary);
+  border-color: rgba(33, 150, 243, 0.55);
+  background: rgba(33, 150, 243, 0.08);
+  transform: translateY(-1px);
+}
+
+.member-pin-button.is-pinned {
+  color: #2196F3;
+  border-color: rgba(33, 150, 243, 0.7);
+  background: rgba(33, 150, 243, 0.14);
+}
+
 .network-identity {
   display: inline-flex;
   align-items: center;

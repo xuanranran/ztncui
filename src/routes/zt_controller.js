@@ -95,6 +95,9 @@ router.post('/network/:nwid/member/:id/ipAssignments', restrict, networkControll
 // POST request for member noAutoAssignIps toggle
 router.post('/network/:nwid/member/:id/noAutoAssignIps', restrict, networkController.member_no_auto_assign);
 
+// POST request for member pin toggle
+router.post('/network/:nwid/member/:id/pin', restrict, networkController.member_pin);
+
 // GET request to generate IPv4 pool
 router.get('/network/:nwid/api/generateIPv4Pool', restrict, networkController.generateIPv4Pool);
 

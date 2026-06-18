@@ -13,6 +13,49 @@ const util = require('util');
 storage.initSync({ dir: 'etc/storage' });
 
 const networkDescriptionKey = nwid => 'network:' + nwid + ':description';
+const pinnedMembersKey = nwid => 'network:' + nwid + ':pinnedMembers';
+
+function memberIPv4ToNumber(ip) {
+  if (!ip || ip.indexOf(':') !== -1) return null;
+  const parts = ip.split('.').map(part => Number(part));
+  if (parts.length !== 4 || parts.some(part => !Number.isInteger(part) || part < 0 || part > 255)) return null;
+  return parts.reduce((value, part) => (value * 256) + part, 0);
+}
+
+function memberSortIp(member) {
+  const assignments = Array.isArray(member.ipAssignments) ? member.ipAssignments : [];
+  return assignments.find(ip => memberIPv4ToNumber(ip) !== null) || assignments[0] || '';
+}
+
+async function getPinnedMembers(nwid) {
+  const pinned = await storage.getItem(pinnedMembersKey(nwid));
+  return Array.isArray(pinned) ? pinned : [];
+}
+
+function sortMembers(members, pinnedMembers, ipSort) {
+  const pinnedSet = new Set(pinnedMembers);
+  const direction = ipSort === 'desc' ? -1 : 1;
+
+  return members
+    .map((member, index) => {
+      member.pinned = pinnedSet.has(member.id);
+      member.sortIp = memberSortIp(member);
+      member.sortIpNumber = memberIPv4ToNumber(member.sortIp);
+      member.originalIndex = index;
+      return member;
+    })
+    .sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      if (ipSort === 'asc' || ipSort === 'desc') {
+        const aMissing = a.sortIpNumber === null;
+        const bMissing = b.sortIpNumber === null;
+        if (aMissing !== bMissing) return aMissing ? 1 : -1;
+        if (!aMissing && a.sortIpNumber !== b.sortIpNumber) return (a.sortIpNumber - b.sortIpNumber) * direction;
+        return String(a.sortIp).localeCompare(String(b.sortIp), undefined, { numeric: true }) * direction;
+      }
+      return a.originalIndex - b.originalIndex;
+    });
+}
 
 async function map_limit(items, limit, fn) {
   const results = new Array(items.length);
@@ -96,12 +139,15 @@ exports.network_detail = async function (req, res) {
   try {
     const [
       { network, members },
-      zt_address
+      zt_address,
+      pinnedMembers
     ] = await Promise.all([
       get_network_with_members(req.params.nwid),
-      zt.get_zt_address()
+      zt.get_zt_address(),
+      getPinnedMembers(req.params.nwid)
     ]);
-    res.render('network_detail', { title: '网络 ' + network.name, navigate: navigate, network: network, members: members, zt_address: zt_address });
+    const ipSort = req.query.ipSort === 'desc' ? 'desc' : (req.query.ipSort === 'asc' ? 'asc' : '');
+    res.render('network_detail', { title: '网络 ' + network.name, navigate: navigate, network: network, members: sortMembers(members, pinnedMembers, ipSort), zt_address: zt_address, ipSort: ipSort });
   } catch (err) {
     res.render('network_detail', { title: '网络详细信息', navigate: navigate, error: '解析网络的详细信息时出错 ' + req.params.nwid + ': ' + err });
   }
@@ -112,11 +158,14 @@ exports.network_members_status = async function (req, res) {
   try {
     const [
       { members },
-      zt_address
+      zt_address,
+      pinnedMembers
     ] = await Promise.all([
       get_network_with_members(req.params.nwid),
-      zt.get_zt_address()
+      zt.get_zt_address(),
+      getPinnedMembers(req.params.nwid)
     ]);
+    const pinnedSet = new Set(pinnedMembers);
 
     // Return member status data
     const memberStatus = members.map(member => {
@@ -133,7 +182,8 @@ exports.network_members_status = async function (req, res) {
         version: member.peer ? member.peer.version : null,
         paths: member.peer && member.peer.paths ? member.peer.paths.map(p => p.address) : [],
         isController: member.id == zt_address,
-        lastSeen: lastSeen
+        lastSeen: lastSeen,
+        pinned: pinnedSet.has(member.id)
       };
     });
 
@@ -213,6 +263,7 @@ exports.network_delete_post = async function (req, res) {
   try {
     const network = await zt.network_delete(req.params.nwid);
     await storage.removeItem(networkDescriptionKey(req.params.nwid));
+    await storage.removeItem(pinnedMembersKey(req.params.nwid));
     res.render('network_delete', { title: '删除网络', navigate: navigate, network: network });
   } catch (err) {
     res.render('network_delete', { title: '删除网络', navigate: navigate, error: '删除网络时候出错 ' + req.params.nwid + ': ' + err });
@@ -838,6 +889,21 @@ exports.dns = async function (req, res) {
   }
 }
 
+exports.member_pin = async function (req, res) {
+  const pinned = toBool(req.body.pinned);
+  try {
+    const pinnedMembers = await getPinnedMembers(req.params.nwid);
+    const pinnedSet = new Set(pinnedMembers);
+    if (pinned) pinnedSet.add(req.params.id);
+    else pinnedSet.delete(req.params.id);
+    await storage.setItem(pinnedMembersKey(req.params.nwid), Array.from(pinnedSet));
+    res.json({ success: true, pinned: pinned });
+  } catch (err) {
+    console.error('保存成员置顶状态时出错:', err);
+    res.status(500).json({ success: false, error: '保存置顶状态失败' });
+  }
+};
+
 // Display detail page for specific member
 exports.member_detail = async function (req, res) {
   const navigate =
@@ -1056,6 +1122,8 @@ exports.member_delete = async function (req, res) {
       member = await zt.member_delete(req.params.nwid, req.params.id);
       if (member.deleted) {
         name = await storage.removeItem(member.id);
+        const pinnedMembers = await getPinnedMembers(req.params.nwid);
+        await storage.setItem(pinnedMembersKey(req.params.nwid), pinnedMembers.filter(id => id !== member.id));
       }
     } else {
       member = await zt.member_detail(req.params.nwid, req.params.id);

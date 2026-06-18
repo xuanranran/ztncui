@@ -10,6 +10,9 @@ block title
 
 block net_content
   - const nwurl = basePath + '/network/' + network.nwid;
+  - const currentIpSort = typeof ipSort === 'undefined' ? '' : ipSort;
+  - const nextIpSort = currentIpSort === 'asc' ? 'desc' : 'asc';
+  - const ipSortIcon = currentIpSort === 'asc' ? '▲' : (currentIpSort === 'desc' ? '▼' : '↕');
 
   // Settings Card
   .panel.panel-default
@@ -68,6 +71,17 @@ block net_content
           $('.text').on('change', function() {
             $.post(url, {'id': this.name, 'name': this.value});
           });
+          $('.member-pin-button').on('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const button = $(this);
+            const memberId = button.data('member-id');
+            const nextPinned = button.data('pinned') !== true && button.data('pinned') !== 'true';
+            $.post("#{nwurl}/member/" + memberId + "/pin", {'pinned': nextPinned})
+              .done(function() {
+                window.location.reload();
+              });
+          });
         });
 
       .table-responsive
@@ -78,7 +92,8 @@ block net_content
               th(width='15%' style='text-align: center;') 地址 (ID)
               th(width='10%' style='text-align: center;') 授权状态
               th(width='10%' style='text-align: center;') 主动桥接
-              th(width='15%' style='text-align: center;') 托管 IP
+              th(width='15%' style='text-align: center;')
+                a.member-sort-link(href=(nwurl + '?ipSort=' + nextIpSort) title='按托管 IPv4 排序') 托管 IP #{ipSortIcon}
               th(width='15%' style='text-align: center;') 物理地址
               th(width='10%' style='text-align: center;') 状态
               th(width='5%')
@@ -86,9 +101,12 @@ block net_content
             each member in members
               - const peer = member.peer;
               - const url = nwurl + '/member/' + member.id
-              tr
+              tr(class=(member.pinned ? 'member-row-pinned' : ''))
                 td(style='text-align: center; min-width: 200px;')
-                   input.form-control.text.member-name-input(type='text' name=member.id value=member.name onclick='event.stopPropagation();' placeholder='为设备命名' style='width: 100%;')
+                   .member-name-cell
+                     button.member-pin-button(type='button' data-member-id=member.id data-pinned=(member.pinned ? 'true' : 'false') title=(member.pinned ? '取消置顶' : '置顶设备') aria-label=(member.pinned ? '取消置顶设备' : '置顶设备') class=(member.pinned ? 'is-pinned' : ''))
+                       i.glyphicon.glyphicon-pushpin
+                     input.form-control.text.member-name-input(type='text' name=member.id value=member.name onclick='event.stopPropagation();' placeholder='为设备命名' style='width: 100%;')
                 td(style='text-align: center;')
                    div(style='display: flex; align-items: center; justify-content: center; gap: 12px;')
                      div(style='text-align: left;')
@@ -145,7 +163,7 @@ block net_content
                      i.glyphicon.glyphicon-trash(style='font-size: 1.2em;')
             else
               tr
-                td(colspan='6' style='text-align: center; padding: 40px;')
+                td(colspan='8' style='text-align: center; padding: 40px;')
                   div(style='color: var(--text-muted);') 暂无设备加入此网络。
                   div(style='margin-top: 8px;') 分享网络 ID 
                     code #{network.nwid} 
