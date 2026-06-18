@@ -311,17 +311,44 @@ body.login-page .form-control {
   display: block !important;
 }
 
-.member-sort-link {
+.member-sort-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-heading) !important;
+}
+
+.member-sort-controls {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  color: var(--text-heading) !important;
-  text-decoration: none !important;
+  gap: 4px;
 }
 
-.member-sort-link:hover {
+.member-sort-button {
+  min-width: 26px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(145, 158, 171, 0.28);
+  border-radius: 5px;
+  color: var(--text-muted) !important;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none !important;
+  transition: color var(--ease), border-color var(--ease), background-color var(--ease);
+}
+
+.member-sort-button:hover,
+.member-sort-button.is-active {
   color: var(--primary) !important;
+  border-color: rgba(33, 150, 243, 0.62);
+  background: rgba(33, 150, 243, 0.1);
 }
 
 .member-row-pinned > td {

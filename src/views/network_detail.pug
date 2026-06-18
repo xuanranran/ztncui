@@ -11,8 +11,6 @@ block title
 block net_content
   - const nwurl = basePath + '/network/' + network.nwid;
   - const currentIpSort = typeof ipSort === 'undefined' ? '' : ipSort;
-  - const nextIpSort = currentIpSort === 'asc' ? 'desc' : 'asc';
-  - const ipSortIcon = currentIpSort === 'asc' ? '▲' : (currentIpSort === 'desc' ? '▼' : '↕');
 
   // Settings Card
   .panel.panel-default
@@ -93,7 +91,12 @@ block net_content
               th(width='10%' style='text-align: center;') 授权状态
               th(width='10%' style='text-align: center;') 主动桥接
               th(width='15%' style='text-align: center;')
-                a.member-sort-link(href=(nwurl + '?ipSort=' + nextIpSort) title='按托管 IPv4 排序') 托管 IP #{ipSortIcon}
+                .member-sort-heading
+                  span 托管 IP
+                  .member-sort-controls(aria-label='托管 IP 排序')
+                    a.member-sort-button(href=(nwurl + '?ipSort=asc') title='升序' class=(currentIpSort === 'asc' ? 'is-active' : '')) 上
+                    a.member-sort-button(href=(nwurl + '?ipSort=desc') title='降序' class=(currentIpSort === 'desc' ? 'is-active' : '')) 下
+                    a.member-sort-button(href=nwurl title='恢复原始排序' class=(currentIpSort === '' ? 'is-active' : '')) 无
               th(width='15%' style='text-align: center;') 物理地址
               th(width='10%' style='text-align: center;') 状态
               th(width='5%')
