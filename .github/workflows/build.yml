@@ -18,37 +18,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Upgrade npm and install node-gyp
         run: |
-          npm install -g npm@9
+          npm install -g npm@10
           npm install -g node-gyp
-          npm install -g pkg
+          npm install -g @yao-pkg/pkg
 
       - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y rpm build-essential ruby-dev gcc g++ make libgmp-dev
           sudo gem install fpm
-
-      - name: Fix libstdc++ check in build script
-        run: |
-          # The script expects /usr/lib/gcc/x86_64-redhat-linux/10/libstdc++.a
-          # We are on Ubuntu, so we need to either fake this path or modify the script.
-          # Here we find where libstdc++.a IS, and symlink it to the expected redhat path.
-          
-          # Find actual libstdc++.a
-          ACTUAL_LIB=$(find /usr/lib -name libstdc++.a | head -n 1)
-          echo "Found libstdc++.a at: $ACTUAL_LIB"
-          
-          # Create the directory structure expected by build.sh
-          sudo mkdir -p /usr/lib/gcc/x86_64-redhat-linux/10/
-          
-          # Create symlink
-          sudo ln -s "$ACTUAL_LIB" /usr/lib/gcc/x86_64-redhat-linux/10/libstdc++.a
-          
-          echo "Created symlink to satisfy build.sh check."
 
       - name: Run Build Script
         working-directory: ./build
