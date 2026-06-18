@@ -94,9 +94,9 @@ block net_content
                 .member-sort-heading
                   span 托管 IP
                   .member-sort-controls(aria-label='托管 IP 排序')
-                    a.member-sort-button(href=(nwurl + '?ipSort=asc') title='升序' class=(currentIpSort === 'asc' ? 'is-active' : '')) 上
-                    a.member-sort-button(href=(nwurl + '?ipSort=desc') title='降序' class=(currentIpSort === 'desc' ? 'is-active' : '')) 下
-                    a.member-sort-button(href=nwurl title='恢复原始排序' class=(currentIpSort === '' ? 'is-active' : '')) 无
+                    a.member-sort-button(href=(nwurl + '?ipSort=asc') title='升序' class=(currentIpSort === 'asc' ? 'is-active' : '')) ▲
+                    a.member-sort-button(href=(nwurl + '?ipSort=desc') title='降序' class=(currentIpSort === 'desc' ? 'is-active' : '')) ▼
+                    a.member-sort-button(href=nwurl title='恢复原始排序' class=(currentIpSort === '' ? 'is-active' : '')) ↕
               th(width='15%' style='text-align: center;') 物理地址
               th(width='10%' style='text-align: center;') 状态
               th(width='5%')
