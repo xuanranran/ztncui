@@ -7,17 +7,80 @@ extends network_layout
 block title
 block net_content
   script.
+    const quickIPv4Pools = [
+      '10.147.17.*', '10.147.18.*', '10.147.19.*', '10.147.20.*',
+      '10.144.*.*', '10.241.*.*', '10.242.*.*', '10.243.*.*',
+      '10.244.*.*', '172.22.*.*', '172.23.*.*', '172.24.*.*',
+      '172.25.*.*', '172.26.*.*', '172.27.*.*', '172.28.*.*',
+      '172.29.*.*', '172.30.*.*', '192.168.191.*', '192.168.192.*',
+      '192.168.193.*', '192.168.194.*', '192.168.195.*', '192.168.196.*'
+    ];
+
+    function poolFromPattern(pattern) {
+      const parts = pattern.split('.');
+      if (parts.length !== 4) return null;
+      if (parts[2] === '*' && parts[3] === '*') {
+        return {
+          ipRangeStart: parts[0] + '.' + parts[1] + '.0.1',
+          ipRangeEnd: parts[0] + '.' + parts[1] + '.255.254'
+        };
+      }
+      if (parts[3] === '*') {
+        return {
+          ipRangeStart: parts[0] + '.' + parts[1] + '.' + parts[2] + '.1',
+          ipRangeEnd: parts[0] + '.' + parts[1] + '.' + parts[2] + '.254'
+        };
+      }
+      return null;
+    }
+
+    function applyPool(pool, message) {
+      $('#ipRangeStart').val(pool.ipRangeStart);
+      $('#ipRangeEnd').val(pool.ipRangeEnd);
+      if (message) $('.pool-hint').text(message);
+    }
+
+    function renderQuickPools() {
+      const grid = $('#quickIPv4Grid');
+      quickIPv4Pools.forEach(function(pattern) {
+        const button = $('<button/>', {
+          type: 'button',
+          class: 'pool-preset',
+          text: pattern,
+          'data-pattern': pattern
+        });
+        grid.append(button);
+      });
+    }
+
     $(function() {
+      renderQuickPools();
+
+      $('.pool-mode-tab').on('click', function() {
+        const mode = $(this).data('mode');
+        $('.pool-mode-tab').removeClass('active');
+        $(this).addClass('active');
+        $('.pool-mode-pane').hide();
+        $('#' + mode + 'PoolPane').show();
+      });
+
+      $('.pool-preset').on('click', function() {
+        const pattern = $(this).data('pattern');
+        const pool = poolFromPattern(pattern);
+        if (!pool) return;
+        $('.pool-preset').removeClass('active');
+        $(this).addClass('active');
+        applyPool(pool, '已选择 ' + pattern + '，可直接提交或继续手动调整。');
+      });
+
       $('#generateIPv6Btn').on('click', function() {
         const nwid = '#{network.nwid}';
         $.ajax({
-          url: '#{basePath}/controller/network/' + nwid + '/api/generateIPv6Pool',
+          url: '#{basePath}/network/' + nwid + '/api/generateIPv6Pool',
           method: 'GET',
           success: function(response) {
             if (response.success) {
-              $('#ipRangeStart').val(response.pool.ipRangeStart);
-              $('#ipRangeEnd').val(response.pool.ipRangeEnd);
-              alert(response.message || 'IPv6 地址池已生成');
+              applyPool(response.pool, response.message || 'IPv6 地址池已生成，可直接提交。');
             }
           },
           error: function() {
@@ -29,13 +92,12 @@ block net_content
       $('#generateIPv4Btn').on('click', function() {
         const nwid = '#{network.nwid}';
         $.ajax({
-          url: '#{basePath}/controller/network/' + nwid + '/api/generateIPv4Pool',
+          url: '#{basePath}/network/' + nwid + '/api/generateIPv4Pool',
           method: 'GET',
           success: function(response) {
             if (response.success) {
-              $('#ipRangeStart').val(response.pool.ipRangeStart);
-              $('#ipRangeEnd').val(response.pool.ipRangeEnd);
-              alert(response.message || 'IPv4 地址池已生成');
+              $('.pool-preset').removeClass('active');
+              applyPool(response.pool, response.message || 'IPv4 地址池已生成，可直接提交。');
             }
           },
           error: function() {
@@ -59,7 +121,7 @@ block net_content
             - const isIPv6 = ipAssignmentPool.ipRangeStart.includes(':');
             tr
               td(width='3%')
-                a(href=(basePath + '/controller/network/' + network.nwid + '/ipAssignmentPools/' + ipAssignmentPool.ipRangeStart + '/' + ipAssignmentPool.ipRangeEnd + '/delete'))
+                a(href=(basePath + '/network/' + network.nwid + '/ipAssignmentPools/' + ipAssignmentPool.ipRangeStart + '/' + ipAssignmentPool.ipRangeEnd + '/delete'))
                   i.glyphicon.glyphicon-trash  
               td
                 span(style=`font-family: var(--font-mono); color: ${isIPv6 ? '#4CAF50' : '#2196F3'};`)= ipAssignmentPool.ipRangeStart
@@ -77,21 +139,26 @@ block net_content
     .col-sm-12
       h3 添加新的IP分配池
 
-  .row(style='margin-bottom: 20px;')
-    .col-sm-12(style='display: flex; gap: 10px; flex-wrap: wrap;')
-      div
+  .pool-builder
+    .pool-mode-tabs
+      button.pool-mode-tab.active(type='button' data-mode='easy') 常用网段
+      button.pool-mode-tab(type='button' data-mode='advanced') 手动输入
+
+    #easyPoolPane.pool-mode-pane
+      .pool-toolbar
         button#generateIPv4Btn.btn.btn-primary(type='button')
           i.glyphicon.glyphicon-random
-          |  随机生成 IPv4 池
-        div(style='margin-top: 5px; color: var(--text-muted); font-size: 0.85em;') 生成随机 10.x.x.x 局域网范围
-      
-      div
+          |  随机生成 IPv4
         button#generateIPv6Btn.btn.btn-success(type='button')
           i.glyphicon.glyphicon-flash
-          |  自动生成 IPv6 池
-        div(style='margin-top: 5px; color: var(--text-muted); font-size: 0.85em;') 基于网络 ID 生成 RFC4193 ULA IPv6 范围
+          |  自动生成 IPv6
+      #quickIPv4Grid.pool-preset-grid
+      .pool-hint 选择常用网段后会自动填写下方地址池范围。
 
-  form(method='POST' action=(basePath + '/controller/network/' + network.nwid + '/ipAssignmentPools'))
+    #advancedPoolPane.pool-mode-pane(style='display: none;')
+      .pool-hint 手动填写下面的开始/结束地址，支持 IPv4 和 IPv6。
+
+  form(method='POST' action=(basePath + '/network/' + network.nwid + '/ipAssignmentPools'))
     .form-group.row
       .col-sm-2
         label(for='ipRangeStart') IP范围开始:
@@ -110,7 +177,7 @@ block net_content
       .col-sm-12
         button.btn.btn-primary(type='submit') 提交
         = ' '
-        a.btn.btn-default(href=(basePath + '/controller/network/' + network.nwid) name='cancel' role='button') 取消
+        a.btn.btn-default(href=(basePath + '/network/' + network.nwid) name='cancel' role='button') 取消
 
   if errors
     .row

@@ -7,17 +7,12 @@ extends login_layout
 
 block login_content
   .auth-wrapper
-    .auth-sidebar
-      div(style='text-align: center;')
-        img(src=basePath + '/images/key-logo.svg', width='120', style='margin-bottom: 24px;')
-        h2(style='color: #fff; margin-bottom: 12px;') ZeroTier 网络控制器
-        p(style='color: #919EAB; font-size: 1.1em;') 安全、易管理、高性能的虚拟网络。
-
+    .auth-page-note ZeroTier 网络控制器 - 安全、易管理、高性能的虚拟网络
     .auth-main
       .auth-card
         div(style='text-align: center; margin-bottom: 32px;')
-          h2(style='color: #212B36;') 登录
-          p(style='color: #637381;') 请输入您的账户凭据以继续。
+          h2 登录
+          p 请输入您的账户凭据以继续。
 
         if error
            .alert.alert-danger #{error}
@@ -26,11 +21,11 @@ block login_content
 
         form(method='POST' action='')
           .form-group
-            label(for='username' style='font-weight: 500; color: #212B36;') 用户名
-            input#username.form-control(type='text' name='username' placeholder='请输入用户名')
+            label(for='username') 用户名
+            input#username.form-control(type='text' name='username' value='admin' placeholder='请输入用户名' autocomplete='username')
           
           .form-group
-            label(for='password' style='font-weight: 500; color: #212B36;') 密码
+            label(for='password') 密码
             input#password.form-control(type='password' name='password' placeholder='请输入密码')
             
           .form-group(style='margin-top: 32px;')

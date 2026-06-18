@@ -24,6 +24,20 @@ block net_content
 
     .row
       .col-sm-12
+        .checkbox
+          label
+            input#noAutoAssignIps(type='checkbox' checked=(member.noAutoAssignIps? true : false))
+            |  禁止自动分配 IP (noAutoAssignIps)
+        div(style='font-size: 0.85em; color: var(--text-muted);') 勾选后控制器不会从地址池自动给该成员分配 IP, 只使用上面手动指定的地址。
+        script.
+          $(function() {
+            $('#noAutoAssignIps').on('change', function() {
+              $.post('#{basePath}/network/#{network.nwid}/member/#{member.id}/noAutoAssignIps', { noAutoAssignIps: this.checked });
+            });
+          });
+
+    .row
+      .col-sm-12
         table.table.table-responsive.table-striped.table-hover
           tr
             th(width='3%')
@@ -33,7 +47,7 @@ block net_content
             - const isIPv6 = ipAssignment.includes(':');
             tr
               td(width='3%')
-                a.btn.btn-link(role='button' href=(basePath + '/controller/network/' + network.nwid + '/member/' + member.id + '/ipAssignments/' + index + '/delete'))
+                a.btn.btn-link(role='button' href=(basePath + '/network/' + network.nwid + '/member/' + member.id + '/ipAssignments/' + index + '/delete'))
                   i.glyphicon.glyphicon-trash
               td
                 span(style=`font-family: var(--font-mono); padding: 4px 12px; border-radius: 4px; background: ${isIPv6 ? 'rgba(76, 175, 80, 0.1)' : 'rgba(33, 150, 243, 0.1)'}; color: ${isIPv6 ? '#4CAF50' : '#2196F3'}; display: inline-flex; align-items: center; gap: 6px;`)
@@ -50,7 +64,7 @@ block net_content
 
     .row
       .col-sm-12
-        a(href=(basePath + '/controller/network/' + network.nwid + '/routes'))
+        a(href=(basePath + '/network/' + network.nwid + '/routes'))
           h3 管理的路由
         table.table.table-responsive.table-striped.table-hover
           tr
@@ -60,7 +74,7 @@ block net_content
             each route in network.routes
               tr
                 td(width='3%')
-                  a.btn.btn-link(role='button' href=(basePath + '/controller/network/' + network.nwid + '/routes/' + route.target + '/delete'))
+                  a.btn.btn-link(role='button' href=(basePath + '/network/' + network.nwid + '/routes/' + route.target + '/delete'))
                     i.glyphicon.glyphicon-trash
                 td= route.target
                 td= route.via

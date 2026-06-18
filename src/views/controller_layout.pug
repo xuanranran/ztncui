@@ -6,11 +6,8 @@
 extends head_layout
 
 block nav_items
-  // Direct navigation items with icons
-  +nav_item('controller_home', '主页', basePath + '/controller', 'glyphicon-home')
-  +nav_item('users', '用户', basePath + '/users', 'glyphicon-user')
-  +nav_item('networks', '网络', basePath + '/controller/networks', 'glyphicon-cloud')
-  +nav_item('create_user', '创建用户', basePath + '/users/create', 'glyphicon-plus-sign')
+  +nav_item('networks', '网络', basePath + '/networks', 'glyphicon-cloud', ['add_network', 'controller_home'])
+  +nav_item('users', '用户', basePath + '/users', 'glyphicon-user', ['create_user'])
 
 block body_content
   .container(style='margin: 50px auto 20px')

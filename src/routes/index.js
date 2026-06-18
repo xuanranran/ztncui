@@ -8,13 +8,14 @@ const express = require('express');
 const auth = require('../controllers/auth');
 const authenticate = auth.authenticate;
 const restrict = auth.restrict;
+const networkController = require('../controllers/networkController');
 const router = express.Router();
 
 /** Redirect logged user to controler page */
 function guest_only(req, res, next) {
   if (req.session.user) {
     const basePath = req.app && req.app.locals ? (req.app.locals.basePath || '') : '';
-    res.redirect(basePath + '/controller');
+    res.redirect(basePath + '/networks');
   } else {
     next();
   }
@@ -24,7 +25,7 @@ function guest_only(req, res, next) {
 router.get('/', function (req, res, next) {
   if (req.session.user) {
     const basePath = req.app && req.app.locals ? (req.app.locals.basePath || '') : '';
-    res.redirect(basePath + '/controller');
+    res.redirect(basePath + '/networks');
   } else {
     const basePath = req.app && req.app.locals ? (req.app.locals.basePath || '') : '';
     res.redirect(basePath + '/login');
@@ -37,6 +38,8 @@ router.get('/logout', function (req, res) {
     res.redirect(basePath + '/');
   });
 });
+
+router.get('/networks', restrict, networkController.network_list);
 
 router.get('/login', guest_only, function (req, res) {
   let message = null;
@@ -58,7 +61,7 @@ router.post('/login', async function (req, res) {
         req.session.success = '认证成功，用户为 ' + user.name;
         if (user.pass_set) {
           const basePath = req.app && req.app.locals ? (req.app.locals.basePath || '') : '';
-          const redirectTarget = req.query.redirect || (basePath + '/controller');
+          const redirectTarget = req.query.redirect || (basePath + '/networks');
           res.redirect(redirectTarget);
         } else {
           const basePath = req.app && req.app.locals ? (req.app.locals.basePath || '') : '';

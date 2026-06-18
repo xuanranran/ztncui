@@ -1,52 +1,74 @@
 //-
   ztncui - ZeroTier network controller UI
-  Copyright (C) 2017-2021  Key Networks (https://key-networks.com)
+  Copyright (C) 2017-2021 Key Networks (https://key-networks.com)
   Licensed under GPLv3 - see LICENSE for details.
 
 extends network_layout
 block title
 block net_content
-  .row
-    .col-sm-12
-      table.table.table-responsive.table-striped.table-hover
-        tr
-          th
-          th 目标
-          th 网关
-          each route in network.routes
-            tr
-              td(width='3%')
-                a(href=(basePath + '/controller/network/' + network.nwid + '/routes/' + route.target + '/delete'))
-                  i.glyphicon.glyphicon-trash
-              td= route.target
-              td= route.via
-
-  .row
-    .col-sm-12
-      h3 添加新路由:
-
-  form(method='POST' action=(basePath + '/controller/network/' + network.nwid + '/routes'))
-    .form-group.row
-      .col-sm-12
-        label(for='target') 目标:
-      .col-sm-12
-        input#target.form-control(type='text' name='target' placeholder='例如：10.11.12.0/24' value=(undefined===route? '' : route.target))
-
-    .form-group.row
-      .col-sm-12
-        label(for='via') 网关:
-      .col-sm-12
-        input#via.form-control(type='text' name='via' placeholder='例如：172.16.2.1 如果目标是ZT网络，则保留空白' value=(undefined===route? '' : route.via))
-
-    .form-group.row
-      .col-sm-12
-        button.btn.btn-primary(type='submit') 提交
-        = ' '
-        a.btn.btn-default(href=(basePath + '/controller/network/' + network.nwid) name='cancel' role='button') 取消
+  - const routes = network.routes || [];
 
   if errors
-    .row
-      .col-sm-12
-        ul
-          for err in errors
-            li!= err.msg
+    .alert.alert-danger
+      each err in errors
+        div= err.msg
+
+  .managed-routes-page
+    .managed-routes-header
+      div
+        h3 托管路由
+        p 定义此网络可以访问的其他 IP 网段，包括桥接子网、其他网络或互联网路由。
+      span.managed-routes-count 已使用 #{routes.length} / 128
+
+    .managed-routes-section
+      h4 添加新路由
+      form(method='POST' action=(basePath + '/network/' + network.nwid + '/routes'))
+        .managed-route-grid
+          div
+            label.assignment-field-label(for='target') 目标网段（CIDR）
+            p.assignment-help 输入目标网段，例如 10.1.2.0/24 或 fd00::/48。
+            input#target.form-control.assignment-input(type='text' name='target' placeholder='例如：10.1.2.0/24' value=(typeof route === 'undefined' ? '' : route.target) required)
+          div
+            label.assignment-field-label(for='via') 网关（ZeroTier IP）
+            p.assignment-help 填写承担网关角色的成员托管 IP；网络本地子网可留空。
+            input#via.form-control.assignment-input(type='text' name='via' placeholder='例如：10.0.24.1（本地子网留空）' value=(typeof route === 'undefined' ? '' : route.via))
+        .managed-route-add-action
+          button.btn.btn-primary(type='submit')
+            i.glyphicon.glyphicon-plus
+            |  添加路由
+
+    .managed-routes-section
+      h4 活动托管路由
+      if routes.length
+        .table-responsive-wrapper
+          table.table.managed-routes-table
+            thead
+              tr
+                th 目标网段（CIDR）
+                th 网关（IP 地址）
+                th 范围
+                th.text-right 操作
+            tbody
+              each managedRoute in routes
+                tr
+                  td
+                    code= managedRoute.target
+                  td
+                    if managedRoute.via
+                      code= managedRoute.via
+                    else
+                      span.managed-route-local 网络本身
+                  td
+                    span.label.managed-route-scope(class=(managedRoute.via ? 'label-info' : 'label-success'))= managedRoute.via ? '经成员转发' : '本地子网'
+                  td.text-right
+                    a.btn.btn-sm.btn-outline-danger(
+                      href=(basePath + '/network/' + network.nwid + '/routes/' + managedRoute.target + '/delete')
+                      title='删除路由'
+                      onclick="return confirm('确定删除这条托管路由吗？')"
+                    )
+                      i.glyphicon.glyphicon-trash
+      else
+        .managed-routes-empty 当前没有活动托管路由。
+
+    .assignment-actions
+      a.btn.btn-default(href=(basePath + '/network/' + network.nwid)) 返回网络

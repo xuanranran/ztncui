@@ -1,39 +1,108 @@
 //-
   ztncui - ZeroTier network controller UI
-  Copyright (C) 2017-2021  Key Networks (https://key-networks.com)
+  Copyright (C) 2017-2021 Key Networks (https://key-networks.com)
   Licensed under GPLv3 - see LICENSE for details.
 
 extends network_layout
 block title
 block net_content
+  - const ipv6Routes = (network.routes || []).filter(route => String(route.target).includes(':') && !route.via);
+  - const ipv6Pools = (network.ipAssignmentPools || []).filter(pool => String(pool.ipRangeStart).includes(':'));
+  - const ipv6Subnet = form ? form.ipv6Subnet : (ipv6Routes[0] ? ipv6Routes[0].target : '');
+  - const poolStart = form ? form.poolStart : (ipv6Pools[0] ? ipv6Pools[0].ipRangeStart : '');
+  - const poolEnd = form ? form.poolEnd : (ipv6Pools[0] ? ipv6Pools[0].ipRangeEnd : '');
+  - const customAssign = form ? form.customAssign : !!(network.v6AssignMode && network.v6AssignMode.zt);
+  - const rfc4193 = form ? form.rfc4193 : !!(network.v6AssignMode && network.v6AssignMode.rfc4193);
+  - const sixplane = form ? form.sixplane : !!(network.v6AssignMode && network.v6AssignMode['6plane']);
+
   script.
+    function toggleIPv6Range() {
+      const enabled = $('#ztCheckBox').is(':checked');
+      $('.ipv6-custom-fields').toggleClass('is-disabled', !enabled);
+      $('#v6PoolStart, #v6PoolEnd').prop('disabled', !enabled);
+    }
+
+    function generateIPv6Settings() {
+      $.get('#{basePath}/network/#{network.nwid}/api/generateIPv6Pool')
+        .done(function(response) {
+          if (!response.success) return;
+          $('#ipv6Subnet').val(response.pool.subnet);
+          $('#v6PoolStart').val(response.pool.ipRangeStart);
+          $('#v6PoolEnd').val(response.pool.ipRangeEnd);
+          $('#ztCheckBox').prop('checked', true);
+          toggleIPv6Range();
+          $('.ipv6-generate-hint').text('RFC4193 ULA 子网和自定义范围已生成。');
+        })
+        .fail(function() { alert('生成 IPv6 设置失败，请重试'); });
+    }
+
     $(function() {
-      $('.checkbox').on('click', function() {
-        $.post('', {'6plane': $('#6planeCheckBox').is(':checked'), 'rfc4193': $('#rfc4193CheckBox').is(':checked'), 'zt': $('#ztCheckBox').is(':checked')});
-      });
+      $('#ztCheckBox').on('change', toggleIPv6Range);
+      toggleIPv6Range();
     });
 
-  form(method='POST' action='')
-    table.table.table-responsive.table-striped.table-hover
-      tr
-        td(width='3%')
-          input#6planeCheckBox.checkbox(type='checkbox' checked=(network.v6AssignMode['6plane']? true : false))
-        td ZT 6plane (/每个设备80个可路由)
-      tr
-        td
-          input#rfc4193CheckBox.checkbox(type='checkbox' checked=(network.v6AssignMode['rfc4193']? true : false))
-        td ZT rfc4193 (/每个设备128个)
-      tr
-        td
-          input#ztCheckBox.checkbox(type='checkbox' checked=(network.v6AssignMode['zt']? true : false))
-        td 
-          | 从IP分配池自动分配
-          div(style='font-size: 0.85em; color: var(--text-muted); margin-top: 4px;')
-            | ℹ️ 需要先
-            a(href=(basePath + '/controller/network/' + network.nwid + '/ipAssignmentPools') style='margin-left: 4px;') 配置 IPv6 地址池
-            |  才能使用此模式
-
+  if message
+    .alert.alert-success= message
   if errors
-    ul
-      for err in errors
-        li!= err.msg
+    .alert.alert-danger
+      each err in errors
+        div= err.msg
+
+  form.assignment-page(method='POST' action='')
+    .assignment-header
+      h3 IPv6 分配
+      p 使用自定义范围、RFC4193 或 6PLANE 为成员设备分配 IPv6 地址。
+
+    .assignment-section
+      label.assignment-field-label(for='ipv6Subnet') IPv6 子网
+      input#ipv6Subnet.form-control.assignment-input(type='text' name='ipv6Subnet' value=ipv6Subnet placeholder='例如：fd00::/48')
+      p.assignment-help 使用自定义 IPv6 地址池时必填，并作为网络的本地托管路由。
+      button.btn.btn-default(type='button' onclick='generateIPv6Settings()')
+        i.glyphicon.glyphicon-random
+        |  生成 RFC4193 子网和范围
+      span.pool-hint.ipv6-generate-hint
+
+    .assignment-section.assignment-option
+      label.assignment-switch-row(for='ztCheckBox')
+        span.assignment-switch
+          input#ztCheckBox.assignment-switch-input(type='checkbox' name='zt' value='true' checked=customAssign)
+          span.assignment-switch-track
+        span
+          strong 从自定义 IPv6 范围分配
+          small 为成员设备使用下方指定的 IPv6 地址池。
+      .ipv6-custom-fields
+        .assignment-field-grid
+          div
+            label.assignment-field-label(for='v6PoolStart') IPv6 起始地址
+            input#v6PoolStart.form-control.assignment-input(type='text' name='poolStart' value=poolStart placeholder='例如：fd00::1')
+          div
+            label.assignment-field-label(for='v6PoolEnd') IPv6 结束地址
+            input#v6PoolEnd.form-control.assignment-input(type='text' name='poolEnd' value=poolEnd placeholder='例如：fd00::ffff')
+        if ipv6Pools.length
+          h4.assignment-current-title 当前 IPv6 自动分配范围
+          .assignment-current-row
+            span= ipv6Pools[0].ipRangeStart
+            i.glyphicon.glyphicon-arrow-right
+            span= ipv6Pools[0].ipRangeEnd
+
+    .assignment-section.assignment-option
+      label.assignment-switch-row(for='rfc4193CheckBox')
+        span.assignment-switch
+          input#rfc4193CheckBox.assignment-switch-input(type='checkbox' name='rfc4193' value='true' checked=rfc4193)
+          span.assignment-switch-track
+        span
+          strong 分配 RFC4193 唯一本地地址（每台设备 /128）
+          small 自动为每台设备生成稳定且唯一的私有 IPv6 地址，无需配置地址池。
+
+    .assignment-section.assignment-option
+      label.assignment-switch-row(for='6planeCheckBox')
+        span.assignment-switch
+          input#6planeCheckBox.assignment-switch-input(type='checkbox' name='6plane' value='true' checked=sixplane)
+          span.assignment-switch-track
+        span
+          strong 分配 6PLANE 路由地址（每台设备 /80）
+          small 根据节点 ID 生成全局可路由的 IPv6 地址，无需配置地址池。
+
+    .assignment-actions
+      a.btn.btn-default(href=(basePath + '/network/' + network.nwid)) 取消
+      button.btn.btn-primary(type='submit') 保存 IPv6 设置

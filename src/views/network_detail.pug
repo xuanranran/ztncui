@@ -8,50 +8,8 @@ extends network_layout
 //- Don't display that title
 block title
 
-//- Replace the network title with the editable one
-block network_title
-  h2
-    | 网络 
-    a#change-name(href='#')
-      span#name= network.name
-      i.glyphicon.glyphicon-pencil(style='font-size: 20px;')
-    input#name-input.form-control(type='text' style='width: 200px; display: none;')
-    |  (#{network.nwid}):
-  script.
-    $(function() {
-      var nwurl = '#{basePath}/controller/network/#{network.nwid}';
-      var name = !{JSON.stringify(network.name)};
-
-      function toggleNameEditor(show) {
-        $('#change-name').css('display', !show ? '' : 'none');
-        $('#name-input').css('display', show ? 'inline-block' : 'none');
-      }
-
-      function submit() {
-        var newName = $('#name-input').val();
-        if (newName != name) {
-          name = newName;
-          $.post(nwurl + '/name', {'name': name})
-            .done(function () {
-              $('#name').text(newName);
-            });
-        }
-        toggleNameEditor(false);
-      }
-
-      $('#change-name').on('click', function() {
-        toggleNameEditor(true);
-        $('#name-input').val(name);
-        $('#name-input').focus();
-      });
-      $('#name-input').on('focusout', submit);
-      $('#name-input').keypress(function (e) {
-        if (e.which == 13) submit();
-      });
-    });
-
 block net_content
-  - const nwurl = basePath + '/controller/network/' + network.nwid;
+  - const nwurl = basePath + '/network/' + network.nwid;
 
   // Settings Card
   .panel.panel-default
@@ -60,13 +18,12 @@ block net_content
       .row
         .col-md-12
           div.settings-grid(style='display: flex; gap: 10px; flex-wrap: wrap;')
-            a.btn.btn-default(href=(nwurl + '/routes')) 路由
-            a.btn.btn-default(href=(nwurl + '/ipAssignmentPools')) 地址分配池
-            a.btn.btn-default(href=(nwurl + '/v4AssignMode')) IPv4 分配模式
-            a.btn.btn-default(href=(nwurl + '/v6AssignMode')) IPv6 分配模式
+            a.btn.btn-default(href=(nwurl + '/details')) 网络详情
+            a.btn.btn-default(href=(nwurl + '/v4AssignMode')) IPv4 分配
+            a.btn.btn-default(href=(nwurl + '/v6AssignMode')) IPv6 分配
+            a.btn.btn-default(href=(nwurl + '/routes')) 托管路由
             a.btn.btn-default(href=(nwurl + '/dns')) DNS
-            a.btn.btn-default(href=(nwurl + '/easy')) 简易设置
-            a.btn.btn-default(href=(nwurl + '/private')) #{network.private ? "私有" : "公有"}
+            a.btn.btn-default(href=(nwurl + '/advanced')) 组播
 
   if (members !== undefined)
     - 
@@ -74,7 +31,7 @@ block net_content
       let offlineCount = 0;
       let unauthCount = 0;
       members.forEach(m => {
-        if (m.peer && m.peer.latency != -1) onlineCount++;
+        if (m.peer) onlineCount++;
         else offlineCount++;
         if (!m.authorized) unauthCount++;
       });
@@ -104,6 +61,8 @@ block net_content
             $.post(url, {'id': this.value, 'auth': this.checked});
           });
           $('.bridgeCheck').on('click', function() {
+            const statusSpan = $(this).closest('.checkbox-wrapper').find('span').last();
+            statusSpan.text(this.checked ? '已开启' : '未开启');
             $.post(url, {'id': this.value, 'activeBridge': this.checked});
           });
           $('.text').on('change', function() {
@@ -118,8 +77,9 @@ block net_content
               th(width='25%' style='text-align: center;') 名称 / 描述
               th(width='15%' style='text-align: center;') 地址 (ID)
               th(width='10%' style='text-align: center;') 授权状态
-              th(width='17.5%' style='text-align: center;') 托管 IP
-              th(width='17.5%' style='text-align: center;') 物理地址
+              th(width='10%' style='text-align: center;') 主动桥接
+              th(width='15%' style='text-align: center;') 托管 IP
+              th(width='15%' style='text-align: center;') 物理地址
               th(width='10%' style='text-align: center;') 状态
               th(width='5%')
           tbody
@@ -128,7 +88,7 @@ block net_content
               - const url = nwurl + '/member/' + member.id
               tr
                 td(style='text-align: center; min-width: 200px;')
-                   input.form-control.text(type='text' name=member.id value=member.name onclick='event.stopPropagation();' placeholder='为设备命名' style='width: 100%;')
+                   input.form-control.text.member-name-input(type='text' name=member.id value=member.name onclick='event.stopPropagation();' placeholder='为设备命名' style='width: 100%;')
                 td(style='text-align: center;')
                    div(style='display: flex; align-items: center; justify-content: center; gap: 12px;')
                      div(style='text-align: left;')
@@ -143,6 +103,12 @@ block net_content
                        input.authCheck(type='checkbox' value=member.id checked=(member.authorized? true : false))
                        span.checkmark
                      span.status-text(style='font-size: 0.8em; min-width: auto; color: var(--text-muted);') #{member.authorized ? '已授权' : '未授权'}
+                td(onclick='event.stopPropagation();' style='text-align: center;')
+                   div.checkbox-wrapper(style='display: flex; flex-direction: column; align-items: center; gap: 6px;')
+                     label.custom-checkbox
+                       input.bridgeCheck(type='checkbox' value=member.id checked=(member.activeBridge? true : false))
+                       span.checkmark
+                     span(style='font-size: 0.8em; min-width: auto; color: var(--text-muted);') #{member.activeBridge ? '已开启' : '未开启'}
                 td(style='text-align: center;')
                    if member.ipAssignments && member.ipAssignments.length > 0
                      each ipAssignment in member.ipAssignments
@@ -156,20 +122,21 @@ block net_content
                    else
                      span(style='color: var(--text-muted); font-size: 0.9em;') 未分配 IP
                 td(style='text-align: center;')
-                   if (peer && peer.paths)
+                   if (peer && peer.paths && peer.paths.length > 0)
                      each path in peer.paths
                        div(style='font-family: var(--font-mono); font-size: 0.85em; color: var(--text-muted);') #{path.address}
+                   else if (peer)
+                     span(style='color: var(--text-muted); font-size: 0.9em;') 无直连路径
                    else
                      span(style='color: var(--text-muted); font-size: 0.9em;') -
                 td(style='text-align: center;')
-                   - const hasActivePeer = peer && peer.latency != -1;
-                   - const hasIPAssignment = member.ipAssignments && member.ipAssignments.length > 0;
-                   - const isOnline = hasActivePeer || (member.authorized && hasIPAssignment);
+                   - const hasLatency = peer && peer.latency != -1;
+                   - const isOnline = !!peer;
                    if (member.id == zt_address)
                      span(style='color: var(--primary); font-weight: 700;') 控制器
                    else if (isOnline)
                      span(style='color: #22C55E; font-weight: 700;') 在线
-                     if hasActivePeer
+                     if hasLatency
                        span(style='color: #2196F3; font-weight: 700;')  (#{peer.latency}ms)
                    else
                      span(style='color: #FF4842; font-weight: 700;') 离线
@@ -201,7 +168,7 @@ block net_content
               .detail-value
                 +json_value(value)
 
-  a.btn.btn-default(href=(basePath + '/controller/networks') name='networks' role='button') 返回网络列表
+  a.btn.btn-default(href=(basePath + '/networks') name='networks' role='button') 返回网络列表
 
   script.
     function copyToClipboard(text) {
@@ -240,95 +207,3 @@ block net_content
         }, 2000);
       }
     }
-
-    // Real-time member status updates
-    $(function() {
-      const nwid = '#{network.nwid}';
-      const apiUrl = '#{basePath}/controller/network/' + nwid + '/api/members/status';
-      let updateInterval;
-
-      function updateMemberStatus() {
-        $.ajax({
-          url: apiUrl,
-          method: 'GET',
-          success: function(response) {
-            if (response.success && response.members) {
-              response.members.forEach(function(member) {
-                const row = $('tr').filter(function() {
-                  return $(this).find('input[name="' + member.id + '"]').length > 0;
-                });
-
-                if (row.length > 0) {
-                  // Update status column (6th td)
-                  const statusCell = row.find('td').eq(5);
-                  let statusHtml;
-                  
-                  if (member.isController) {
-                    statusHtml = '<span style="color: var(--primary); font-weight: 700;">控制器</span>';
-                  } else if (member.online && member.latency >= 0) {
-                    statusHtml = '<span style="color: #22C55E; font-weight: 700;">在线</span> ' +
-                                '<span style="color: #2196F3; font-weight: 700;">(' + member.latency + 'ms)</span>';
-                  } else {
-                    statusHtml = '<span style="color: #FF4842; font-weight: 700;">离线</span>';
-                  }
-                  
-                  statusCell.html(statusHtml);
-
-                  // Update version if peer exists
-                  if (member.version) {
-                    row.find('td').eq(1).find('div[style*="font-size: 0.75em"]').html('v' + member.version);
-                  }
-
-                  // Update physical addresses
-                  if (member.paths && member.paths.length > 0) {
-                    const pathsHtml = member.paths.map(path => 
-                      '<div style="font-family: var(--font-mono); font-size: 0.85em; color: var(--text-muted);">' + path + '</div>'
-                    ).join('');
-                    row.find('td').eq(4).html(pathsHtml);
-                  }
-                }
-              });
-
-              // Update badge counts
-              let onlineCount = 0;
-              let offlineCount = 0;
-              let unauthCount = 0;
-              
-              response.members.forEach(function(m) {
-                if (m.online) onlineCount++;
-                else offlineCount++;
-                if (!m.authorized) unauthCount++;
-              });
-
-              $('.panel-heading .badge').eq(0).text('在线 ' + onlineCount);
-              $('.panel-heading .badge').eq(1).text('离线 ' + offlineCount);
-              $('.panel-heading .badge').eq(2).text('未授权 ' + unauthCount);
-            }
-          },
-          error: function(xhr, status, error) {
-            console.error('更新成员状态失败:', error);
-          }
-        });
-      }
-
-      // Initial update
-      updateMemberStatus();
-
-      // Update every 5 seconds
-      updateInterval = setInterval(updateMemberStatus, 5000);
-
-      // Stop updates when page is hidden or user navigates away
-      $(document).on('visibilitychange', function() {
-        if (document.hidden) {
-          clearInterval(updateInterval);
-        } else {
-          updateMemberStatus();
-          updateInterval = setInterval(updateMemberStatus, 5000);
-        }
-      });
-
-      // Clean up on page unload
-      $(window).on('beforeunload', function() {
-        clearInterval(updateInterval);
-      });
-    });

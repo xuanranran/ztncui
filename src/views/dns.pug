@@ -1,57 +1,102 @@
 //-
   ztncui - ZeroTier network controller UI
-  Copyright (C) 2017-2021  Key Networks (https://key-networks.com)
+  Copyright (C) 2017-2021 Key Networks (https://key-networks.com)
   Licensed under GPLv3 - see LICENSE for details.
 
 extends network_layout
 block title
 block net_content
   - const dns = network.dns || {};
-  if (!dns.domain && !(dns.servers && dns.servers.length > 0))
-    .row
-      .col-sm-12
-        b 此网络上没有DNS配置.
-  else
-    .row
-      .col-sm-2
-        b 域名:
-      .col-sm-10
-        p= dns.domain
-    .row
-      .col-sm-2
-        b DNS服务器:
-      .col-sm-10
-        .row
-          each server in dns.servers
-            .col-sm-12= server
+  - const dnsDomain = form ? form.domain : (dns.domain || '');
+  - const dnsServers = form ? form.servers : (dns.servers || []);
 
-  .row
-    .col-sm-12
-      h3 更改DNS配置:
+  script.
+    const initialDnsDomain = !{JSON.stringify(dnsDomain)};
+    const initialDnsServers = !{JSON.stringify(dnsServers)};
 
-  form(method='POST' action='')
-    .form-group.row
-      .col-sm-12
-        label(for='domain') 域名:
-      .col-sm-12
-        input#domain.form-control(type='text' name='domain' value=dns.domain)
+    function createDnsServerRow(value) {
+      const row = $('<div/>', { class: 'dns-server-row' });
+      row.append($('<input/>', {
+        type: 'text',
+        class: 'form-control assignment-input dns-server-input',
+        placeholder: '例如：10.147.20.190 或 fd00::53',
+        value: value || ''
+      }));
+      row.append($('<button/>', {
+        type: 'button',
+        class: 'network-icon-btn dns-server-action'
+      }));
+      $('#dnsServerRows').append(row);
+    }
 
-    .form-group.row
-      .col-sm-12
-        label(for='servers') DNS服务器:
-      .col-sm-12
-        textarea#servers.form-control(type='text' name='servers' placeholder='(每行一个IP地址)')
-          = !dns.servers ? '' : dns.servers.join('\n')
+    function renderDnsServers(servers) {
+      $('#dnsServerRows').empty();
+      (servers.length ? servers : ['']).forEach(createDnsServerRow);
+      updateDnsRemoveButtons();
+    }
 
-    .form-group.row
-      .col-sm-12
-        button.btn.btn-primary(type='submit') 提交
-        = ' '
-        a.btn.btn-default(href=(basePath + '/controller/network/' + network.nwid) name='cancel' role='button') 取消
+    function updateDnsRemoveButtons() {
+      const rows = $('.dns-server-row');
+      rows.each(function(index) {
+        const button = $(this).find('.dns-server-action');
+        if (index === 0) {
+          button.removeClass('dns-remove-server').addClass('dns-add-server').attr('title', '添加服务器').html('<i class="glyphicon glyphicon-plus"></i>');
+        } else {
+          button.removeClass('dns-add-server').addClass('dns-remove-server').attr('title', '删除服务器').html('<i class="glyphicon glyphicon-trash"></i>');
+        }
+      });
+    }
 
+    function syncDnsServers() {
+      const servers = $('.dns-server-input').map(function() { return $(this).val().trim(); }).get().filter(Boolean);
+      $('#servers').val(servers.join('\n'));
+    }
+
+    function resetDnsForm() {
+      $('#domain').val(initialDnsDomain);
+      renderDnsServers(initialDnsServers);
+      syncDnsServers();
+    }
+
+    $(function() {
+      renderDnsServers(initialDnsServers);
+      $('#dnsServerRows').on('click', '.dns-add-server', function() {
+        createDnsServerRow('');
+        updateDnsRemoveButtons();
+        $('.dns-server-input').last().focus();
+      });
+      $('#dnsServerRows').on('click', '.dns-remove-server', function() {
+        $(this).closest('.dns-server-row').remove();
+        updateDnsRemoveButtons();
+        syncDnsServers();
+      });
+      $('#dnsSettingsForm').on('submit', syncDnsServers);
+    });
+
+  if message
+    .alert.alert-success= message
   if errors
-    .row
-      .col-sm-12
-        ul
-          for err in errors
-            li!= err.msg
+    .alert.alert-danger
+      each err in errors
+        div= err.msg
+
+  form#dnsSettingsForm.dns-settings-page(method='POST' action='')
+    .dns-settings-header
+      h3 DNS 设置
+      p 为此网络配置自定义域名解析。每个网络只能设置一个搜索域，但可以配置多个 DNS 服务器。
+      p 更改此处设置后，客户端还需要启用“允许 DNS”才能生效。
+
+    .dns-settings-section
+      h4 添加 DNS
+      .dns-settings-grid
+        div
+          label.assignment-field-label(for='domain') 搜索域
+          input#domain.form-control.assignment-input(type='text' name='domain' value=dnsDomain placeholder='例如：home.arpa' autocomplete='off')
+        div
+          label.assignment-field-label DNS 服务器地址
+          #dnsServerRows
+      input#servers(type='hidden' name='servers')
+
+    .assignment-actions
+      button.btn.btn-default(type='button' onclick='resetDnsForm()') 重置
+      button.btn.btn-primary(type='submit') 保存 DNS 设置

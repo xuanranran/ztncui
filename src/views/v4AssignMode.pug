@@ -1,26 +1,185 @@
 //-
   ztncui - ZeroTier network controller UI
-  Copyright (C) 2017-2021  Key Networks (https://key-networks.com)
+  Copyright (C) 2017-2021 Key Networks (https://key-networks.com)
   Licensed under GPLv3 - see LICENSE for details.
 
 extends network_layout
 block title
 block net_content
+  - const ipv4Routes = (network.routes || []).filter(route => !String(route.target).includes(':') && !route.via);
+  - const ipv4Pools = (network.ipAssignmentPools || []).filter(pool => !String(pool.ipRangeStart).includes(':'));
+  - const ipv4Subnet = form ? form.ipv4Subnet : (ipv4Routes[0] ? ipv4Routes[0].target : '');
+  - const poolStart = form ? form.poolStart : (ipv4Pools[0] ? ipv4Pools[0].ipRangeStart : '');
+  - const poolEnd = form ? form.poolEnd : (ipv4Pools[0] ? ipv4Pools[0].ipRangeEnd : '');
+  - const autoAssign = form ? form.autoAssign : !!(network.v4AssignMode && network.v4AssignMode.zt);
+
   script.
+    const quickIPv4Networks = [
+      '10.147.17.*', '10.147.18.*', '10.147.19.*', '10.147.20.*',
+      '10.144.*.*', '10.241.*.*', '10.242.*.*', '10.243.*.*',
+      '10.244.*.*', '172.22.*.*', '172.23.*.*', '172.24.*.*',
+      '172.25.*.*', '172.26.*.*', '172.27.*.*', '172.28.*.*',
+      '172.29.*.*', '172.30.*.*', '192.168.191.*', '192.168.192.*',
+      '192.168.193.*', '192.168.194.*', '192.168.195.*', '192.168.196.*'
+    ];
+
+    function networkFromPattern(pattern) {
+      const parts = pattern.split('.');
+      if (parts[2] === '*' && parts[3] === '*') {
+        return { cidr: parts[0] + '.' + parts[1] + '.0.0/16', start: parts[0] + '.' + parts[1] + '.0.1', end: parts[0] + '.' + parts[1] + '.255.254' };
+      }
+      return { cidr: parts[0] + '.' + parts[1] + '.' + parts[2] + '.0/24', start: parts[0] + '.' + parts[1] + '.' + parts[2] + '.1', end: parts[0] + '.' + parts[1] + '.' + parts[2] + '.254' };
+    }
+
+    function applyIPv4Network(network, message) {
+      $('#ipv4Subnet').val(network.cidr);
+      $('#poolStart').val(network.start);
+      $('#poolEnd').val(network.end);
+      $('.assignment-hint').text(message);
+    }
+
+    function applyIPv4Generator() {
+      const family = $('#privatePrefix').val();
+      const second = Number($('#privateOctet2').val());
+      const third = Number($('#privateOctet3').val());
+      const secondMin = family === '172' ? 16 : 0;
+      const secondMax = family === '172' ? 31 : 255;
+      if (!Number.isInteger(second) || second < secondMin || second > secondMax || !Number.isInteger(third) || third < 0 || third > 255) return;
+      const prefix = family + '.' + second + '.' + third;
+      applyIPv4Network({
+        cidr: prefix + '.0/24',
+        start: prefix + '.1',
+        end: prefix + '.254'
+      }, '已生成 ' + prefix + '.0/24，可直接保存。');
+      $('#quickIPv4Select').val('');
+    }
+
+    function configurePrivatePrefix(randomize) {
+      const family = $('#privatePrefix').val();
+      const second = $('#privateOctet2');
+      if (family === '192') {
+        second.val(168).prop('disabled', true).attr({min: 168, max: 168});
+      } else if (family === '172') {
+        second.prop('disabled', false).attr({min: 16, max: 31});
+        if (randomize || Number(second.val()) < 16 || Number(second.val()) > 31) second.val(16);
+      } else {
+        second.prop('disabled', false).attr({min: 0, max: 255});
+        if (randomize || Number(second.val()) < 0 || Number(second.val()) > 255) second.val(0);
+      }
+      if (randomize) randomizePrivateSuffix();
+      else applyIPv4Generator();
+    }
+
+    function randomizePrivateSuffix() {
+      const family = $('#privatePrefix').val();
+      if (family === '10') $('#privateOctet2').val(Math.floor(Math.random() * 256));
+      else if (family === '172') $('#privateOctet2').val(16 + Math.floor(Math.random() * 16));
+      else $('#privateOctet2').val(168);
+      $('#privateOctet3').val(Math.floor(Math.random() * 256));
+      applyIPv4Generator();
+    }
+
+    function syncGeneratorFromSubnet() {
+      const match = $('#ipv4Subnet').val().match(/^(10|172|192)\.(\d{1,3})\.(\d{1,3})\.0\/24$/);
+      if (!match) return;
+      if (match[1] === '192' && Number(match[2]) !== 168) return;
+      if (match[1] === '172' && (Number(match[2]) < 16 || Number(match[2]) > 31)) return;
+      $('#privatePrefix').val(match[1]);
+      $('#privateOctet2').val(match[2]);
+      $('#privateOctet3').val(match[3]);
+      configurePrivatePrefix(false);
+    }
+
+    function toggleIPv4Range() {
+      const enabled = $('#v4AssignModeCheckBox').is(':checked');
+      $('.assignment-range-fields').toggleClass('is-disabled', !enabled);
+      $('#poolStart, #poolEnd').prop('disabled', !enabled);
+    }
+
     $(function() {
-      $('.checkbox').on('click', function() {
-        $.post('', {'zt': $('#v4AssignModeCheckBox').is(':checked')});
+      const select = $('#quickIPv4Select');
+      quickIPv4Networks.forEach(function(pattern) {
+        select.append($('<option/>', { value: pattern, text: pattern }));
       });
+      select.on('change', function() {
+        const pattern = $(this).val();
+        if (!pattern) return;
+        applyIPv4Network(networkFromPattern(pattern), '已选择 ' + pattern + '，可直接保存。');
+      });
+      $('#privatePrefix').on('change', function() { configurePrivatePrefix(true); });
+      $('#privateOctet2, #privateOctet3').on('input change', applyIPv4Generator);
+      $('#ipv4Subnet').on('change', syncGeneratorFromSubnet);
+      syncGeneratorFromSubnet();
+      $('#v4AssignModeCheckBox').on('change', toggleIPv4Range);
+      toggleIPv4Range();
     });
 
-  form(method='POST' action='')
-    table.table.table-responsive.table-striped.table-hover
-      tr
-        td(width='3%')
-          input#v4AssignModeCheckBox.checkbox(type='checkbox' checked=(network.v4AssignMode.zt? true : false))
-        td 从IP分配池自动分配
-
+  if message
+    .alert.alert-success= message
   if errors
-    ul
-      for err in errors
-        li!= err.msg
+    .alert.alert-danger
+      each err in errors
+        div= err.msg
+
+  form.assignment-page(method='POST' action='')
+    .assignment-header
+      h3 IPv4 分配
+      p 设置 IPv4 子网以及新成员设备的自动地址分配范围。
+
+    .assignment-section
+      label.assignment-field-label(for='ipv4Subnet') IPv4 子网
+      input#ipv4Subnet.form-control.assignment-input(type='text' name='ipv4Subnet' value=ipv4Subnet placeholder='例如：10.147.17.0/24' required)
+      p.assignment-help 此子网同时作为网络的本地托管路由。
+      .ipv4-generator
+        div
+          label.assignment-field-label(for='privatePrefix') 固定前缀
+          select#privatePrefix.form-control.assignment-input
+            option(value='10') 10
+            option(value='172') 172
+            option(value='192') 192
+        div
+          label.assignment-field-label(for='privateOctet2') 第二段
+          input#privateOctet2.form-control.assignment-input(type='number' min='0' max='255' value='0' inputmode='numeric')
+        div
+          label.assignment-field-label(for='privateOctet3') 第三段
+          input#privateOctet3.form-control.assignment-input(type='number' min='0' max='255' value='0' inputmode='numeric')
+        button.btn.btn-default.ipv4-generate-button(type='button' onclick='randomizePrivateSuffix()')
+          i.glyphicon.glyphicon-random
+          |  生成数字
+
+      .assignment-quick-select
+        label.assignment-field-label(for='quickIPv4Select') 常用网段
+        select#quickIPv4Select.form-control.assignment-input
+          option(value='') 请选择常用 IPv4 网段
+        .pool-hint.assignment-hint 选择后会自动填写子网和地址分配范围。
+
+    .assignment-section.assignment-option
+      label.assignment-switch-row(for='v4AssignModeCheckBox')
+        span.assignment-switch
+          input#v4AssignModeCheckBox.assignment-switch-input(type='checkbox' name='zt' value='true' checked=autoAssign)
+          span.assignment-switch-track
+        span
+          strong 自动为新成员设备分配 IPv4 地址
+          small 开启后从下方范围分配地址，成员手动设置的 IP 不受影响。
+
+      .assignment-range-fields
+        .assignment-field-grid
+          div
+            label.assignment-field-label(for='poolStart') IPv4 起始地址
+            input#poolStart.form-control.assignment-input(type='text' name='poolStart' value=poolStart placeholder='例如：10.147.17.1')
+          div
+            label.assignment-field-label(for='poolEnd') IPv4 结束地址
+            input#poolEnd.form-control.assignment-input(type='text' name='poolEnd' value=poolEnd placeholder='例如：10.147.17.254')
+
+        if ipv4Pools.length
+          h4.assignment-current-title 当前 IPv4 自动分配范围
+          .assignment-current-row
+            span= ipv4Pools[0].ipRangeStart
+            i.glyphicon.glyphicon-arrow-right
+            span= ipv4Pools[0].ipRangeEnd
+        else
+          p.assignment-empty 当前未配置 IPv4 自动分配范围。
+
+    .assignment-actions
+      a.btn.btn-default(href=(basePath + '/network/' + network.nwid)) 取消
+      button.btn.btn-primary(type='submit') 保存 IPv4 设置
