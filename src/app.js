@@ -69,7 +69,14 @@ app.use(basePath + '/bsjs', express.static(path.join(__dirname, 'node_modules/bo
 // Route mounts under base path
 app.use(basePath + '/', index);
 app.use(basePath + '/users', users);
-app.use(basePath + '/controller', zt_controller);
+app.use(basePath || '/', zt_controller);
+
+// Preserve old bookmarks while keeping /controller out of public URLs.
+app.use(basePath + '/controller', function(req, res) {
+  const legacyPrefix = basePath + '/controller';
+  const suffix = req.originalUrl.slice(legacyPrefix.length);
+  res.redirect(308, basePath + (suffix || '/networks'));
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -1,0 +1,44 @@
+extends network_layout
+
+block title
+
+block net_content
+  - const networkName = form ? form.name : network.name;
+
+  if message
+    .alert.alert-success= message
+  if errors
+    .alert.alert-danger
+      each err in errors
+        div= err.msg
+
+  form.assignment-page(method='POST' action='')
+    .assignment-header
+      h3 网络详情
+      p 查看网络 ID，并集中维护网络名称和说明。
+
+    .assignment-section.network-details-section
+      .network-details-id-row
+        .network-details-id-field
+          label.assignment-field-label(for='networkId') 网络 ID
+          input#networkId.form-control.assignment-input(type='text' value=network.nwid readonly)
+        .network-details-actions
+          button.btn.btn-default(type='button' onclick=`copyToClipboard('${network.nwid}')`)
+            i.glyphicon.glyphicon-copy
+            |  复制网络 ID
+          button.btn.btn-default(type='button' onclick=`showNetworkQr('${network.nwid}')`)
+            i.glyphicon.glyphicon-qrcode
+            |  生成二维码
+
+      .form-group
+        label.assignment-field-label(for='networkName') 网络名称
+        input#networkName.form-control.assignment-input(type='text' name='name' value=networkName maxlength='128' required autocomplete='off')
+
+      .form-group
+        label.assignment-field-label(for='networkDescription') 网络描述（可选）
+        textarea#networkDescription.form-control.network-description-input(name='description' maxlength='1000' rows='5' placeholder='输入便于识别此网络的说明')= description
+        p.assignment-help 当网络较多时，描述可以帮助您快速区分用途。
+
+    .assignment-actions
+      button.btn.btn-default(type='reset') 重置
+      button.btn.btn-primary(type='submit') 保存

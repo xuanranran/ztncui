@@ -17,21 +17,25 @@ STAGING_DIR=$BASE_DIR/Staging
 NAME='ztncui'
 DESCRIPTION='ZeroTier network controller user interface'
 VERSION=`grep version ../src/package.json | cut -f4 -d'"'`
-VENDOR='Key Networks'
-MAINTAINER='https://key-networks.com/contact'
-URL='https://key-networks.com'
+VENDOR='xuanranran'
+MAINTAINER='xuanranran <https://github.com/xuanranran/ztncui>'
+URL='https://github.com/xuanranran/ztncui'
 LICENSE='GPLv3'
 
 BINDINGGYP='node_modules/argon2/binding.gyp'
 
-NODE_VER='v18'
+# Build with Node 20 LTS. 'pkg' here is the maintained fork @yao-pkg/pkg
+# (install with: npm i -g @yao-pkg/pkg). It keeps the same 'pkg' CLI/config.
+NODE_VER='v20'
 
-if [ ! -f  /usr/lib/gcc/x86_64-redhat-linux/10/libstdc++.a ]; then
-  echo "You must install libstdc++-static"
+# Locate the static libstdc++ to bundle into the pkg binary (distro-agnostic).
+LIBSTDCXX_STATIC=`g++ -print-file-name=libstdc++.a`
+if [ ! -f "$LIBSTDCXX_STATIC" ]; then
+  echo "You must install a static libstdc++ (e.g. apt-get install g++ libstdc++-*-dev)"
   exit 1
 fi
 
-DEPS="rpmbuild rpmsign npm node"
+DEPS="dpkg-deb fpm pkg npm node"
 
 for DEP in ${DEPS}; do
   if ! which ${DEP}; then
@@ -57,15 +61,14 @@ fi
 
 npm install
 
-patch --forward --dry-run --silent $BINDINGGYP $BUILD_DIR/binding.gyp.patch
-if [ $? -eq 0 ]; then
+# Inject the detected static libstdc++ path into argon2's binding.gyp.
+ARGON2_PATCH=`mktemp`
+sed "s#@LIBSTDCXX_STATIC@#${LIBSTDCXX_STATIC}#g" $BUILD_DIR/binding.gyp.patch > $ARGON2_PATCH
+if patch --forward --dry-run --silent $BINDINGGYP $ARGON2_PATCH; then
   echo "Applying patch to $BINDINGGYP..."
-  patch --forward $BINDINGGYP $BUILD_DIR/binding.gyp.patch
+  patch --forward $BINDINGGYP $ARGON2_PATCH
 fi
-if [ $? -ne 0 ]; then
-  echo "Failed to patch $BINDINGGYP"
-  exit 1
-fi
+rm -f $ARGON2_PATCH
 
 cd node_modules/argon2/
 node-gyp rebuild
@@ -75,21 +78,21 @@ if [ $? -ne 0 ]; then
 fi
 
 popd
-pkg -c ./package.json -t node18-linux-x64 bin/www -o $BUILD_DIR/ztncui
+pkg -c ./package.json -t node20-linux-x64 bin/www -o $BUILD_DIR/ztncui
 
 popd
 
 install -m 755 -d $STAGING_DIR/opt
-install -m 750 -d $STAGING_DIR/opt/key-networks
-install -m 750 -d $STAGING_DIR/opt/key-networks/ztncui
-install -m 750 -d $STAGING_DIR/opt/key-networks/ztncui/etc
-install -m 750 -d $STAGING_DIR/opt/key-networks/ztncui/etc/tls
-install -m 750 -d $STAGING_DIR/opt/key-networks/ztncui/node_modules/argon2/build/Release
+install -m 750 -d $STAGING_DIR/opt/ztncui
+install -m 750 -d $STAGING_DIR/opt/ztncui/etc
+install -m 750 -d $STAGING_DIR/opt/ztncui/etc/tls
+install -m 750 -d $STAGING_DIR/opt/ztncui/node_modules/argon2/build/Release
 install -m 755 -d $STAGING_DIR/lib/systemd/system
-install -m 600 $SRC_DIR/etc/default.passwd $STAGING_DIR/opt/key-networks/ztncui/etc/default.passwd
-install -m 755 $SRC_DIR/node_modules/argon2/build/Release/argon2.node $STAGING_DIR/opt/key-networks/ztncui/node_modules/argon2/build/Release/
-install -m 755 $BUILD_DIR/ztncui $STAGING_DIR/opt/key-networks/ztncui/
+install -m 600 $SRC_DIR/etc/default.passwd $STAGING_DIR/opt/ztncui/etc/default.passwd
+install -m 755 $SRC_DIR/node_modules/argon2/build/Release/argon2.node $STAGING_DIR/opt/ztncui/node_modules/argon2/build/Release/
+install -m 755 $BUILD_DIR/ztncui $STAGING_DIR/opt/ztncui/
 install -m 644 $BUILD_DIR/ztncui.service $STAGING_DIR/lib/systemd/system
+install -m 640 $BUILD_DIR/ztncui.conf $STAGING_DIR/opt/ztncui/etc/ztncui.conf
 
 rm -f $BUILD_DIR/ztncui
 
@@ -100,9 +103,10 @@ GENERAL_FPM_FLAGS="
   --license $LICENSE
   --chdir $STAGING_DIR
   --package $PKG_DIR
-  --directories /opt/key-networks
+  --directories /opt/ztncui
   --depends zerotier-one
   --depends openssl
+  --config-files /opt/ztncui/etc/ztncui.conf
   --before-install before-install.sh
   --after-install after-install.sh
   --before-remove before-remove.sh
@@ -110,15 +114,6 @@ GENERAL_FPM_FLAGS="
   --before-upgrade before-upgrade.sh
   --after-upgrade after-upgrade.sh
 "
-
-fpm -s dir -t rpm \
-  $GENERAL_FPM_FLAGS \
-  --vendor "$VENDOR" \
-  --maintainer "$MAINTAINER" \
-  --description "$DESCRIPTION" \
-  --rpm-user ztncui \
-  --rpm-group ztncui \
-  .
 
 fpm -s dir -t deb \
   $GENERAL_FPM_FLAGS \
@@ -129,8 +124,5 @@ fpm -s dir -t deb \
   --deb-group ztncui \
   .
 
-# rpm --addsign ../Release/ztncui*rpm
-# rpm --checksig ../Release/ztncui*rpm
-
-# createrepo $PKG_DIR
-# gpg -u 'Key Networks' --detach-sign --armor $PKG_DIR/repodata/repomd.xml
+# To sign the resulting .deb (optional):
+# dpkg-sig --sign builder $PKG_DIR/ztncui*.deb

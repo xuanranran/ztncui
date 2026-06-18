@@ -31,6 +31,10 @@ router.post('/network/:nwid/delete', restrict, networkController.network_delete_
 // POST request for Network name
 router.post('/network/:nwid/name', restrict, networkController.name);
 
+// Network details
+router.get('/network/:nwid/details', restrict, networkController.network_details_get);
+router.post('/network/:nwid/details', restrict, networkController.network_details_post);
+
 // GET request for ipAssignmentPool delete
 router.get('/network/:nwid/ipAssignmentPools/:ipRangeStart/:ipRangeEnd/delete', restrict, networkController.ipAssignmentPool_delete);
 
@@ -48,6 +52,9 @@ router.post('/network/:nwid/dns', restrict, networkController.dns);
 
 // POST request for private
 router.post('/network/:nwid/private', restrict, networkController.private);
+
+// POST request for advanced network settings (enableBroadcast/multicastLimit/mtu)
+router.post('/network/:nwid/advanced', restrict, networkController.advanced);
 
 // POST request for v4AssignMode
 router.post('/network/:nwid/v4AssignMode', restrict, networkController.v4AssignMode);
@@ -85,6 +92,9 @@ router.get('/network/:nwid/member/:id/ipAssignments/:index/delete', restrict, ne
 // POST request for member ipAssignment add
 router.post('/network/:nwid/member/:id/ipAssignments', restrict, networkController.assign_ip);
 
+// POST request for member noAutoAssignIps toggle
+router.post('/network/:nwid/member/:id/noAutoAssignIps', restrict, networkController.member_no_auto_assign);
+
 // GET request to generate IPv4 pool
 router.get('/network/:nwid/api/generateIPv4Pool', restrict, networkController.generateIPv4Pool);
 
@@ -100,7 +110,10 @@ router.get('/network/:nwid/:object', restrict, networkController.network_object)
 // GET request for one network
 router.get('/network/:nwid', restrict, networkController.network_detail);
 
-// GET request for list of all networks
-router.get('/networks', restrict, networkController.network_list);
+// Keep the legacy list URL working while exposing the shorter /networks route.
+router.get('/networks', restrict, function(req, res) {
+  const basePath = req.app && req.app.locals ? (req.app.locals.basePath || '') : '';
+  res.redirect(basePath + '/networks');
+});
 
 module.exports = router;

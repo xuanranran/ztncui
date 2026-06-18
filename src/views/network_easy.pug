@@ -7,15 +7,60 @@ extends network_layout
 
 block net_content
   script.
+    const quickIPv4Networks = [
+      '10.147.17.*', '10.147.18.*', '10.147.19.*', '10.147.20.*',
+      '10.144.*.*', '10.241.*.*', '10.242.*.*', '10.243.*.*',
+      '10.244.*.*', '172.22.*.*', '172.23.*.*', '172.24.*.*',
+      '172.25.*.*', '172.26.*.*', '172.27.*.*', '172.28.*.*',
+      '172.29.*.*', '172.30.*.*', '192.168.191.*', '192.168.192.*',
+      '192.168.193.*', '192.168.194.*', '192.168.195.*', '192.168.196.*'
+    ];
+
     function randomOctet() {
-      return Math.floor(Math.random() * 255);
+      return Math.floor(Math.random() * 256);
     }
 
     function randomIPv4() {
       const networkCIDR = document.getElementById('networkCIDR');
-      const CIDR = '10.' + randomOctet() + '.' + randomOctet() + '.0/24';
+      const family = Math.floor(Math.random() * 3);
+      let prefix;
+      if (family === 0) prefix = '10.' + randomOctet() + '.' + randomOctet();
+      else if (family === 1) prefix = '172.' + (16 + Math.floor(Math.random() * 16)) + '.' + randomOctet();
+      else prefix = '192.168.' + randomOctet();
+      const CIDR = prefix + '.0/24';
       networkCIDR.value = CIDR;
       CIDRtoPool(CIDR);
+      $('.pool-preset').removeClass('active');
+      $('.pool-hint').text('随机 IPv4 网络已生成，可直接提交或继续手动调整。');
+    }
+
+    function networkFromPattern(pattern) {
+      const parts = pattern.split('.');
+      if (parts.length !== 4) return null;
+      if (parts[2] === '*' && parts[3] === '*') {
+        return {
+          cidr: parts[0] + '.' + parts[1] + '.0.0/16',
+          start: parts[0] + '.' + parts[1] + '.0.1',
+          end: parts[0] + '.' + parts[1] + '.255.254'
+        };
+      }
+      if (parts[3] === '*') {
+        return {
+          cidr: parts[0] + '.' + parts[1] + '.' + parts[2] + '.0/24',
+          start: parts[0] + '.' + parts[1] + '.' + parts[2] + '.1',
+          end: parts[0] + '.' + parts[1] + '.' + parts[2] + '.254'
+        };
+      }
+      return null;
+    }
+
+    function applyQuickNetwork(pattern) {
+      const network = networkFromPattern(pattern);
+      if (!network) return;
+      $('#networkCIDR').val(network.cidr);
+      $('#poolStart').val(network.start);
+      $('#poolEnd').val(network.end);
+      $('.pool-hint').text('已选择 ' + pattern + '，路由和地址池已自动填写。');
     }
 
     function int32toIPv4String(int32) {
@@ -46,10 +91,36 @@ block net_content
         poolStart.value = int32toIPv4String(net32 + 1);  
         poolEnd.value = int32toIPv4String(bcast32 - 1);
       } else {
-        poolStart.value = 'Invalid network CIDR';
-        poolEnd.value = 'Invalid network CIDR';
+        poolStart.value = '无效的网络 CIDR';
+        poolEnd.value = '无效的网络 CIDR';
       }
     }
+
+    $(function() {
+      const grid = $('#quickEasyIPv4Grid');
+      quickIPv4Networks.forEach(function(pattern) {
+        grid.append($('<button/>', {
+          type: 'button',
+          class: 'pool-preset',
+          text: pattern,
+          'data-pattern': pattern
+        }));
+      });
+
+      $('.pool-mode-tab').on('click', function() {
+        const mode = $(this).data('mode');
+        $('.pool-mode-tab').removeClass('active');
+        $(this).addClass('active');
+        $('.pool-mode-pane').hide();
+        $('#' + mode + 'EasyPane').show();
+      });
+
+      $('.pool-preset').on('click', function() {
+        $('.pool-preset').removeClass('active');
+        $(this).addClass('active');
+        applyQuickNetwork($(this).data('pattern'));
+      });
+    });
 
   if message
     .alert.alert-info
@@ -62,8 +133,21 @@ block net_content
         p 请注意，此实用程序在此阶段仅支持IPv4.
         p 使用以下按钮自动生成随机网络地址，否则手动填写网络地址CIDR，IP分配池将自动为您计算。您可以手动更改这些计算值.
 
-    .form-group
-      button.btn.btn-primary(id='genIPv4' type='button' onclick='randomIPv4()') 生成网络地址
+    .pool-builder
+      .pool-mode-tabs
+        button.pool-mode-tab.active(type='button' data-mode='common') 常用网段
+        button.pool-mode-tab(type='button' data-mode='manual') 手动输入
+
+      #commonEasyPane.pool-mode-pane
+        .pool-toolbar
+          button#genIPv4.btn.btn-primary(type='button' onclick='randomIPv4()')
+            i.glyphicon.glyphicon-random
+            |  随机生成 IPv4
+        #quickEasyIPv4Grid.pool-preset-grid
+        .pool-hint 选择常用网段后会自动填写路由和地址池范围。
+
+      #manualEasyPane.pool-mode-pane(style='display: none;')
+        .pool-hint 手动填写下面的网络 CIDR 和地址池范围。
 
     .form-group
       label(for='networkCIDR') CIDR表示法中的网络地址
@@ -80,7 +164,7 @@ block net_content
     .form-group(style='padding-top: 10px')
       button.btn.btn-primary(type='submit') 提交
       = ' '
-      a.btn.btn-default(href=('/controller/network/' + network.nwid) name='cancel' role='button') 取消
+      a.btn.btn-default(href=('/network/' + network.nwid) name='cancel' role='button') 取消
 
     if errors
       ul
