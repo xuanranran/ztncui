@@ -5,7 +5,7 @@
 #   - 安装 nodejs / 编译工具
 #   - 解压源码到 /opt/ztncui, npm 安装依赖 (argon2 源码编译, 走国内镜像)
 #   - 迁移旧版本 (/opt/key-networks/ztncui) 的 passwd / storage / tls
-#   - 配置 zerotier-one token 访问, 安装 systemd 服务并启动
+#   - 通过 systemd 凭据提供 zerotier-one token, 安装服务并启动
 # =====================================================================
 set -e
 
@@ -76,16 +76,10 @@ ZT_ADDR=localhost:9993
 CONF
 fi
 
-echo "[6/8] 配置 zerotier-one token 访问..."
-if getent group zerotier-one >/dev/null; then
-  usermod -a -G zerotier-one ztncui
-  if [ -f /var/lib/zerotier-one/authtoken.secret ]; then
-    chgrp zerotier-one /var/lib/zerotier-one/authtoken.secret || true
-    chmod g+r /var/lib/zerotier-one/authtoken.secret || true
-    chmod g+rx /var/lib/zerotier-one || true
-  fi
-else
-  echo "  未发现 zerotier-one 组, 请确认已安装 zerotier-one"
+echo "[6/8] 检查 zerotier-one token..."
+if [ ! -s /var/lib/zerotier-one/authtoken.secret ]; then
+  echo "  未找到 ZeroTier token, 请先启动 zerotier-one 服务"
+  exit 1
 fi
 
 echo "[7/8] 安装 systemd 服务 (源码模式)..."
@@ -103,6 +97,8 @@ User=ztncui
 Group=ztncui
 WorkingDirectory=$APP_DIR
 EnvironmentFile=-$APP_DIR/etc/ztncui.conf
+LoadCredential=zerotier-token:/var/lib/zerotier-one/authtoken.secret
+BindReadOnlyPaths=%d/zerotier-token:/var/lib/zerotier-one/authtoken.secret
 ExecStart=$NODE_BIN $APP_DIR/bin/www
 Restart=on-failure
 
