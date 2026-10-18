@@ -3,18 +3,28 @@
    仅做增强/微调, 不改动既有配色体系
    ===================================================================== */
 
+@font-face {
+  font-family: "Twemoji Mozilla";
+  src: url("../fonts/Twemoji.Mozilla.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  /* Keep ordinary digits and punctuation in the text font. */
+  unicode-range: U+0080-10FFFF;
+}
+
 :root {
   /* modern.css 引用了 --font-mono 却未定义, 这里补上等宽字体栈 */
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono",
     "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
-  --font-google-sans: "Google Sans", "Google Sans Text", "Noto Sans SC",
+  --font-google-sans: "Twemoji Mozilla", "Google Sans", "Google Sans Text", "Noto Sans SC",
     "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
   --font-sans: var(--font-google-sans);
   --radius-card: 14px;
   --ease: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Google Sans globally, with CJK fallbacks for glyphs it does not provide. */
+/* Prefer Twemoji Mozilla for emoji, with text and CJK fallbacks. */
 body {
   font-family: var(--font-google-sans) !important;
   letter-spacing: 0;

@@ -1,0 +1,12 @@
+Twemoji Mozilla 0.7.0
+
+Unmodified font from Mozilla's official release:
+https://github.com/mozilla/twemoji-colr/releases/tag/v0.7.0
+https://github.com/mozilla/twemoji-colr/releases/download/v0.7.0/Twemoji.Mozilla.ttf
+
+Font build code: Copyright 2016-2018 Mozilla Foundation, Apache License 2.0.
+Emoji artwork: Twemoji by Twitter and contributors, CC BY 4.0.
+https://github.com/twitter/twemoji
+https://creativecommons.org/licenses/by/4.0/
+
+See Twemoji.Mozilla.LICENSE.md for the upstream license text.
