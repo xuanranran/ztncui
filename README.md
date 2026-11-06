@@ -30,6 +30,66 @@ DEB 默认仅监听 `127.0.0.1:3000`。使用本机浏览器或 SSH 隧道初始
 可在 `/etc/ztncui-console/console.conf` 修改监听地址，再重启 `ztncui-console` 服务。
 不要向公网暴露未初始化的管理员设置页面。
 
+### 安装脚本
+
+仓库提供中文提示的 [Debian/Ubuntu 安装脚本](scripts/install.sh)，支持 amd64、arm64。
+需要 root、systemd、Python 3、util-linux，以及可用的 APT 软件源。
+以下命令均在仓库根目录执行：
+
+```sh
+bash scripts/install.sh --help
+# 推荐：将 DEB 和同名 .sha256 文件放在同一目录，避免私有仓库下载认证问题。
+sudo bash scripts/install.sh --deb /path/to/ztncui-console_1.0.0_amd64.deb
+# 或显式提供可信来源的 SHA-256：
+sudo bash scripts/install.sh --deb /path/to/package.deb --sha256 <64位校验值>
+```
+
+未指定 `--deb` 时，从本仓库 Releases 下载安装包和校验文件。
+私有仓库需要具有仓库内容读取权限的 `GITHUB_TOKEN`，不要把令牌写进脚本或命令历史：
+
+```bash
+read -rsp 'GitHub 只读令牌：' GITHUB_TOKEN; echo
+export GITHUB_TOKEN
+sudo --preserve-env=GITHUB_TOKEN bash scripts/install.sh
+unset GITHUB_TOKEN
+```
+
+脚本会校验包名、版本、架构与 SHA-256；检查通过后，先备份再安装。
+备份保存在 `/var/backups/ztncui-console/<UTC时间>-installer/`，包含已有管理数据库、
+ZeroTier 目录、自定义服务配置和 planet 签名密钥目录。管理数据库备份期间短暂停止界面服务；
+ZeroTier 运行目录为在线归档，不等于完全停机的一致性快照。备份含私钥和账号数据，请严格保密。
+
+默认保留现有 planet、节点身份、管理员及配置，不执行系统软件自动清理。
+仅在未安装 ZeroTier One 时调用官方安装器，已有核心不会自动升级或降级。
+Console 安装后会重启并检查 HTTP 接口；失败时保留备份并报错，**不会自动还原数据库或软件包**。
+已有 `/etc/systemd/system` 自定义服务配置仍然优先，端口不强制改为默认值。
+旧版 Node 界面不会自动停止或导入；迁移须按下文链接操作，并避免监听端口冲突。
+
+首次安装先建立 SSH 隧道，再打开 `http://127.0.0.1:3000` 创建管理员：
+
+```sh
+ssh -L 3000:127.0.0.1:3000 root@SERVER
+```
+
+### 可选私有 Planet
+
+**普通安装和升级不需要重建 planet。** 只有明确要更换根节点时才执行：
+
+```sh
+sudo bash scripts/install.sh --deb /path/to/package.deb --generate-planet <服务器公网IPv4>
+```
+
+此选项使用 `9993/UDP`，会替换本机 planet 并重启 ZeroTier；客户端需要手动导入生成的
+`/root/planet`。还需确认公网地址、NAT 映射和防火墙可达性，脚本不会替你开放端口。
+签名密钥保存在 `/var/lib/ztncui-planet-keys/` 并在后续生成时复用，**不得分发给客户端**。
+从其他部署迁移时，应先妥善迁移原签名密钥，不能把重新生成密钥当成无缝更新。
+
+工具固定使用官方 1.14.2 源码及提交校验，只编译 planet 生成器，不安装该版本核心。
+官方 1.16.2 已删除该生成器目录，因此不能简单替换源码版本号。
+[隔离实测](https://github.com/xuanranran/ztncui/actions/runs/42226024594)已确认：Ubuntu 24.04 amd64 中，
+1.14.2 生成的 planet 可被关闭 SSO 的 1.16.2 测试构建识别，建立活动路径、上线并在重启后重连。
+该测试未覆盖 ARM64、公网 NAT、业务路由和流规则，也不代表完整安装脚本已经通过端到端安装测试。
+
 ## 数据与升级
 
 ZeroTier 保存网络、成员及身份数据；管理界面使用独立 SQLite 数据库保存账号、名称、
@@ -66,6 +126,7 @@ go run ./cmd/ztncui --demo --addr 127.0.0.1:3101 --db data/preview.sqlite
 - `console/cmd`、`console/internal`：Go 服务及测试。
 - `console/web`：Vue 前端、内置图标和字体、第三方许可。
 - `console/packaging`：DEB 构建、systemd 配置和隔离安装测试。
+- `scripts/install.sh`：保留数据和配置的安装器，以及显式启用的 planet 生成选项。
 - `Build Console`：构建和测试新版可执行包。
 - `Build Debian Packages`：从对应发行标签构建 amd64 / arm64 DEB 并测试。
 
