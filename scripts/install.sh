@@ -24,13 +24,13 @@ die() { echo "错误：$*" >&2; exit 1; }
 help() {
     cat <<'HELP'
 用法：sudo bash scripts/install.sh [选项]
-  --deb 文件路径          使用本地 DEB 安装包，私有仓库推荐此方式。
+  --deb 文件路径          可选，使用本地 DEB；默认从公开 Releases 下载。
   --sha256 校验值         指定 SHA-256，否则需要同目录下的 安装包.sha256 文件。
   --version 版本号        Console 发行版本，默认 1.0.0。
   --generate-planet IPv4  使用指定公网 IPv4 和 9993 端口生成并替换 planet。
   --help                  仅显示帮助，不修改系统。
 
-从 xuanranran/ztncui 自动下载私有发行包，需要设置 GITHUB_TOKEN 环境变量。
+从 xuanranran/ztncui 的公开 Releases 下载，不需要 GitHub Token。
 支持 amd64/arm64，保留现有数据、节点身份和服务配置。
 不会自动清理系统软件、重置密码或删除旧版服务。
 首次安装默认监听 127.0.0.1:3000，请先通过 SSH 隧道初始化管理员：
@@ -61,8 +61,12 @@ done
 [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die '版本号格式无效。'
 ARCH=$(dpkg --print-architecture)
 [[ $ARCH == amd64 || $ARCH == arm64 ]] || die "不支持的处理器架构：$ARCH"
-command -v python3 >/dev/null || die '请先安装 python3：apt-get install python3'
-command -v flock >/dev/null || die '请先安装 util-linux：apt-get install util-linux'
+# 精简系统可能缺少 Python、文件锁工具或 HTTPS 根证书，按需补齐。
+if ! command -v python3 >/dev/null || ! command -v flock >/dev/null ||
+   ! dpkg-query -W -f='${Status}' ca-certificates 2>/dev/null | grep -qx 'install ok installed'; then
+    apt-get update
+    apt-get install -y python3 util-linux ca-certificates
+fi
 python3 - "$IP" <<'PY'
 import ipaddress, sys
 if sys.argv[1] and not ipaddress.IPv4Address(sys.argv[1]).is_global:
@@ -100,26 +104,15 @@ WORK=$(mktemp -d /var/tmp/ztncui-install.XXXXXXXX)
 export VERSION ARCH WORK
 if [[ -z $DEB ]]; then
     python3 <<'PY'
-import json, os, urllib.request
+import os, shutil, urllib.request
 from pathlib import Path
-base = 'https://api.github.com/repos/xuanranran/ztncui'
-headers = {'User-Agent': 'ztncui-installer', 'Accept': 'application/vnd.github+json'}
-if os.environ.get('GITHUB_TOKEN'):
-    headers['Authorization'] = 'Bearer ' + os.environ['GITHUB_TOKEN']
-with urllib.request.urlopen(urllib.request.Request(base + '/releases/tags/v' + os.environ['VERSION'], headers=headers), timeout=60) as response:
-    assets = {a['name']: a for a in json.load(response)['assets']}
-class Redirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, hdrs, newurl):
-        target = super().redirect_request(req, fp, code, msg, hdrs, newurl)
-        if target:
-            target.remove_header('Authorization')
-        return target
-client = urllib.request.build_opener(Redirect())
+base = 'https://github.com/xuanranran/ztncui/releases/download/v' + os.environ['VERSION']
 name = f"ztncui-console_{os.environ['VERSION']}_{os.environ['ARCH']}.deb"
 for filename in (name, name + '.sha256'):
-    request = urllib.request.Request(base + '/releases/assets/' + str(assets[filename]['id']), headers={**headers, 'Accept': 'application/octet-stream'})
-    with client.open(request, timeout=120) as response:
-        Path(os.environ['WORK'], filename).write_bytes(response.read())
+    request = urllib.request.Request(base + '/' + filename, headers={'User-Agent': 'ztncui-installer'})
+    with urllib.request.urlopen(request, timeout=120) as response:
+        with Path(os.environ['WORK'], filename).open('wb') as destination:
+            shutil.copyfileobj(response, destination)
 PY
     DEB=$WORK/ztncui-console_${VERSION}_${ARCH}.deb
 fi
