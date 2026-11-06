@@ -1,0 +1,95 @@
+export type Route = { target: string; via: string | null };
+export type Pool = { ipRangeStart: string; ipRangeEnd: string };
+export type Member = {
+  id: string;
+  name: string;
+  icon?: string;
+  tags: string[];
+  policyTags: [number, number][];
+  capabilities: number[];
+  policyRevision: string;
+  pinned: boolean;
+  authorized: boolean;
+  activeBridge: boolean;
+  noAutoAssignIps: boolean;
+  ipAssignments: string[];
+  online: boolean;
+  presenceState?: "online" | "offline" | "unknown";
+  presenceSource?: "peer" | "probe" | "none";
+  probe?: {
+    status: "unprobed" | "pending" | "reachable" | "no_response" | "unavailable" | "disabled";
+    address: string;
+    checkedAt: number;
+    lastSuccess: number;
+    lastSuccessAddress?: string;
+    lastSuccessLatency?: number;
+    latency: number;
+  };
+  connection: "direct" | "relay" | "unknown";
+  latency: number;
+  version: string;
+  lastSeen: number;
+  paths: string[];
+  originalIndex: number;
+};
+export type Network = {
+  id: string;
+  nwid: string;
+  name: string;
+  description: string;
+  private: boolean;
+  revision: string;
+  total: number;
+  online: number;
+  authorized: number;
+  pending: number;
+  members: Member[];
+  routes: Route[];
+  ipAssignmentPools: Pool[];
+  v4AssignMode: { zt: boolean };
+  v6AssignMode: { zt: boolean; rfc4193: boolean; "6plane": boolean };
+  dns: { domain: string; servers: string[] };
+  enableBroadcast: boolean;
+  multicastLimit: number;
+  mtu: number;
+  rules: Record<string, unknown>[];
+  tags: PolicyTag[];
+  capabilities: Capability[];
+  policyMetadata?: PolicyMetadata;
+  flowEditor?: {
+    mode: "template" | "source" | "json";
+    source: string;
+    template: import("./flow-rules").Template;
+    rules: Record<string, unknown>[];
+    policySnapshot?: { tags: PolicyTag[]; capabilities: Capability[] };
+  };
+};
+export type Rule = Record<string, unknown>;
+export type PolicyTag = { id: number; default: number | null };
+export type Capability = { id: number; default: boolean; rules: Rule[] };
+export type PolicyMetadata = {
+  tags: Record<string, { name: string; values?: Record<string, string> }>;
+  capabilities: Record<string, { name: string }>;
+};
+export type Overview = {
+  networks: Network[];
+  revision: string;
+  sampledAt: string;
+  error: string;
+  demo: boolean;
+  controller: { address: string; version: string; online: boolean };
+};
+export type Auth = {
+  authenticated: boolean;
+  setupRequired: boolean;
+  username: string;
+  csrf: string;
+  demo: boolean;
+};
+export type Audit = { id: number; at: string; action: string; target: string };
+export type ProbeSettings = {
+  intervalSeconds: number;
+  timeoutMs: number;
+  revision: string;
+  disabled: boolean;
+};

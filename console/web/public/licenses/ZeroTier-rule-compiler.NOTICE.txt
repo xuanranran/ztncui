@@ -1,0 +1,6 @@
+ZeroTier Rule Compiler
+Copyright ZeroTier, Inc.
+License: MPL-2.0 (see ZeroTier-rule-compiler.MPL-2.0.txt).
+Source: https://github.com/zerotier/ZeroTierOne/blob/899352e38405968516bb12a770f0ac02f6058fa8/rule-compiler/rule-compiler.js
+Local change: CommonJS export replaced with an ES module export.
+Parser and compiler logic are unchanged. Console source includes the modified file.

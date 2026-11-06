@@ -1,0 +1,6 @@
+/web/node_modules/
+/ui/dist/*
+!/ui/dist/.gitkeep
+/data/
+/ztncui-next*
+/test-results/

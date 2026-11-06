@@ -1,0 +1,77 @@
+name: Build Console
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'console/**'
+      - 'src/public/fonts/**'
+      - '.github/workflows/console.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'console/**'
+      - 'src/public/fonts/**'
+      - '.github/workflows/console.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  console:
+    name: Console Linux amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: console
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: console/web/package-lock.json
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: console/go.mod
+          cache-dependency-path: console/go.sum
+      - name: Build and test frontend
+        working-directory: console/web
+        run: |
+          npm ci
+          npm test
+          npm run build
+      - name: Test backend
+        run: |
+          go test -race ./...
+          go vet ./...
+      - name: Package console
+        id: package
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: amd64
+        run: |
+          VERSION="$(node -p "require('./web/package.json').version")"
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          NAME="ztncui-console_${VERSION}_linux_amd64"
+          mkdir -p "../Release/console/$NAME/licenses"
+          go build -trimpath -o "../Release/console/$NAME/ztncui-console" ./cmd/ztncui
+          "../Release/console/$NAME/ztncui-console" --help
+          cp README.md "../Release/console/$NAME/README.md"
+          cp ../LICENSE "../Release/console/$NAME/LICENSE"
+          cp -R web/public/licenses/. "../Release/console/$NAME/licenses/"
+          cp -R web/src/vendor "../Release/console/$NAME/vendor"
+          tar -C ../Release/console -czf "../Release/console/$NAME.tar.gz" "$NAME"
+          (cd ../Release/console && sha256sum "$NAME.tar.gz" > "$NAME.tar.gz.sha256")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Upload console
+        uses: actions/upload-artifact@v7
+        with:
+          name: ztncui-console-${{ steps.package.outputs.version }}-linux-amd64
+          if-no-files-found: error
+          path: |
+            Release/console/*.tar.gz
+            Release/console/*.sha256
