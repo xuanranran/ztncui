@@ -20,6 +20,9 @@ ZT=/var/lib/zerotier-one
 WORK=
 BACKUP=
 RESTART=false
+FRESH_INSTALL=false
+LOCAL_ONLY=false
+ADMIN_PASSWORD_FILE=
 die() { echo "错误：$*" >&2; exit 1; }
 help() {
     cat <<'HELP'
@@ -28,15 +31,18 @@ help() {
   --sha256 校验值         指定 SHA-256，否则需要同目录下的 安装包.sha256 文件。
   --version 版本号        Console 发行版本，默认 1.0.0。
   --generate-planet IPv4  使用指定公网 IPv4 和 9993 端口生成并替换 planet。
+  --admin-password-file 文件  全新安装时从权限为 600/400 的文件读取初始密码。
+  --local-only            全新安装仍只监听本机，不自动初始化管理员。
   --help                  仅显示帮助，不修改系统。
 
 从 xuanranran/ztncui 的公开 Releases 下载，不需要 GitHub Token。
 支持 amd64/arm64，保留现有数据、节点身份和服务配置。
 不会自动清理系统软件、重置密码或删除旧版服务。
-首次安装默认监听 127.0.0.1:3000，请先通过 SSH 隧道初始化管理员：
-  ssh -L 3000:127.0.0.1:3000 root@SERVER
-  浏览器打开 http://127.0.0.1:3000
-之后可修改 /etc/ztncui-console/console.conf 并重启 ztncui-console。
+全新安装先在本机初始化管理员，再开放 0.0.0.0:3000，通过服务器 IP 访问。
+交互安装会提示设置密码；无终端时请使用 --admin-password-file。
+--local-only 可保留仅本机访问，再通过 SSH 隧道初始化。
+已有安装保持原来的监听地址、端口和管理员密码，不自动开放访问。
+0.0.0.0 包含所有 IPv4 接口，请用防火墙限制来源，不要直接暴露到公网。
 /etc/systemd/system 中已有的自定义服务配置优先，不会被覆盖。
 旧版 Node 界面的数据需要另行离线导入，本脚本不会自动迁移。
 生成 planet 会重启 ZeroTier，所有客户端需要手动导入新 planet。
@@ -46,11 +52,13 @@ HELP
 while (($#)); do
     case "$1" in
         --help|-h) help; exit 0 ;;
-        --deb|--sha256|--version|--generate-planet)
+        --local-only) LOCAL_ONLY=true; shift ;;
+        --deb|--sha256|--version|--generate-planet|--admin-password-file)
             (($# >= 2)) || die "选项缺少参数：$1"
             case "$1" in
                 --deb) DEB=$2 ;; --sha256) SHA=$2 ;;
                 --version) VERSION=$2 ;; --generate-planet) IP=$2 ;;
+                --admin-password-file) ADMIN_PASSWORD_FILE=$2 ;;
             esac
             shift 2 ;;
         *) die "未知选项：$1" ;;
@@ -75,6 +83,13 @@ PY
 # 同一时间只允许一个安装进程，防止备份与安装互相覆盖。
 exec 9>/run/lock/ztncui-installer.lock
 flock -n 9 || die '另一个安装进程正在运行，请稍后重试。'
+# 任何已有状态、配置或服务覆盖文件都按升级处理，不擅自更改监听策略。
+if ! dpkg-query -W -f='${Status}' ztncui-console 2>/dev/null | grep -qx 'install ok installed' &&
+   [[ ! -e /etc/ztncui-console && ! -e /var/lib/ztncui-console &&
+      ! -e /etc/systemd/system/ztncui-console.service && ! -L /etc/systemd/system/ztncui-console.service &&
+      ! -e /etc/systemd/system/ztncui-console.service.d ]]; then
+    FRESH_INSTALL=true
+fi
 cleanup() {
     result=$?
     trap - EXIT
@@ -220,8 +235,89 @@ for _ in range(30):
 else:
     raise SystemExit('服务就绪检查失败，请查看 journalctl -u ztncui-console：' + error)
 PY
+# 仅全新安装执行本机初始化；确认管理员存在后，才开放 IPv4 监听。
+python3 - "$FRESH_INSTALL" "$LOCAL_ONLY" "$ADMIN_PASSWORD_FILE" <<'PY'
+import getpass, json, os, pathlib, re, stat, subprocess, sys, time, urllib.request
+
+def configure_fresh_install(config, fresh, local_only, password_reader, api, restart):
+    if not fresh or local_only:
+        return False
+    original = config.read_text()
+    if len(re.findall(r'^LISTEN_ADDR=127\.0\.0\.1:3000$', original, re.M)) != 1:
+        raise ValueError('首次安装配置不符合预期，保留原监听地址')
+    status = api('GET', '/api/auth')
+    if status.get('demo') is not False or not isinstance(status.get('setupRequired'), bool):
+        raise ValueError('无法确认正式服务的管理员状态，不开放监听')
+    if status['setupRequired']:
+        password = password_reader()
+        if not 10 <= len(password.encode('utf-8')) <= 256:
+            raise ValueError('密码长度须为 10 至 256 字节')
+        api('POST', '/api/setup', {'password': password})
+    status = api('GET', '/api/auth')
+    if status.get('demo') is not False or status.get('setupRequired') is not False:
+        raise ValueError('管理员初始化未完成，不开放监听')
+    try:
+        config.write_text(re.sub(r'^LISTEN_ADDR=127\.0\.0\.1:3000$', 'LISTEN_ADDR=0.0.0.0:3000', original, flags=re.M))
+        restart()
+        status = api('GET', '/api/auth')
+        if status.get('demo') is not False or status.get('setupRequired') is not False:
+            raise ValueError('开放监听后就绪检查失败')
+    except Exception:
+        config.write_text(original)
+        restart()
+        raise
+    return True
+
+def read_initial_password(filename):
+    if filename:
+        fd = os.open(filename, os.O_RDONLY | os.O_NOFOLLOW)
+        with os.fdopen(fd, 'r', encoding='utf-8') as source:
+            info = os.fstat(source.fileno())
+            owners = {0, int(os.environ.get('SUDO_UID', '0'))}
+            if not stat.S_ISREG(info.st_mode) or info.st_uid not in owners or stat.S_IMODE(info.st_mode) not in (0o400, 0o600):
+                raise ValueError('密码文件必须由 root 或当前 sudo 用户所有，且权限为 400/600')
+            value = source.read(4097)
+        if len(value) > 4096:
+            raise ValueError('密码文件过长')
+        return value.rstrip('\r\n')
+    try:
+        with open('/dev/tty', 'w') as terminal:
+            password = getpass.getpass('设置 admin 密码（10 至 256 字节）：', stream=terminal)
+            confirm = getpass.getpass('再次输入密码：', stream=terminal)
+    except OSError as exc:
+        raise ValueError('无交互终端，请使用 --admin-password-file；当前仍只允许本机访问') from exc
+    if password != confirm:
+        raise ValueError('两次密码不一致；当前仍只允许本机访问')
+    return password
+
+if __name__ == '__main__':
+    client = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    def api(method, path, payload=None):
+        for attempt in range(30 if method == 'GET' else 1):
+            try:
+                request = urllib.request.Request('http://127.0.0.1:3000' + path,
+                    data=json.dumps(payload).encode() if payload is not None else None,
+                    headers={'Content-Type': 'application/json'}, method=method)
+                with client.open(request, timeout=3) as response:
+                    return json.load(response)
+            except (OSError, ValueError):
+                if method != 'GET' or attempt == 29:
+                    raise
+                time.sleep(1)
+    def restart():
+        subprocess.run(['systemctl', 'restart', 'ztncui-console.service'], check=True)
+    try:
+        changed = configure_fresh_install(pathlib.Path('/etc/ztncui-console/console.conf'),
+            sys.argv[1] == 'true', sys.argv[2] == 'true', lambda: read_initial_password(sys.argv[3]), api, restart)
+    except Exception as exc:
+        raise SystemExit('首次访问配置失败：' + str(exc))
+    if changed:
+        print('管理员已初始化，可通过 http://服务器IP:3000 访问；请限制公网访问来源。')
+    else:
+        print('已保留原有监听配置（或已选择 --local-only），未重置管理员。')
+PY
 RESTART=false
 dpkg-query -W -f='${Package} ${Version} ${Architecture}\n' ztncui-console
 echo 'Console 安装完成，未重置现有数据、配置和管理员密码。'
-echo '首次安装请先通过 SSH 隧道初始化管理员，再按需开启局域网访问。'
+echo '升级不会自动开放已有的仅本机监听；请按实际监听地址访问。'
 echo "备份目录：$BACKUP"

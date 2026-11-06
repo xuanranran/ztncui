@@ -24,16 +24,14 @@ installer=$(mktemp) && curl -fsSL https://raw.githubusercontent.com/xuanranran/z
 已有官方核心不会自动升级或降级；仅缺少 ZeroTier One 时安装官方版本。
 Console 备份和更新会短暂停止或重启管理界面，默认不重启 ZeroTier。
 
-首次安装仅监听 `127.0.0.1:3000`，先建立 SSH 隧道：
+全新安装时，脚本会提示设置 `admin` 密码，完成本机初始化后自动监听 `0.0.0.0:3000`，
+使用 **`http://服务器IP:3000`** 访问，无需再手动修改监听地址。
+无交互终端时可用 `--admin-password-file`，需要仅本机访问时可用 `--local-only`。
+初始化失败会保持本机监听，不开放未初始化的页面。
 
-```sh
-ssh -L 3000:127.0.0.1:3000 root@SERVER
-```
-
-打开 `http://127.0.0.1:3000` 初始化管理员。之后可按需修改
-`/etc/ztncui-console/console.conf` 并重启 `ztncui-console`。
-已有自定义 systemd 配置优先，更新不会强制更改端口。
-**不要将尚未初始化的管理页面暴露到公网。**
+**已有安装不会改变原来的监听地址或端口**，也不会重置账号。
+配置位于 `/etc/ztncui-console/console.conf`，已有自定义 systemd 配置优先。
+`0.0.0.0` 包含所有 IPv4 接口，请用防火墙限制来源；公网访问应另配 HTTPS。
 
 也可从 [Releases](https://github.com/xuanranran/ztncui/releases) 下载 DEB 离线安装；
 [安装详解](docs/INSTALL.md)包含参数、备份和可选私有 Planet 操作。

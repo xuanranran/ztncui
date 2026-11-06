@@ -1,6 +1,7 @@
 *.swp
 Release/
 Staging/
+__pycache__/
 # Keep any local legacy runtime data out of commits after removing its source.
 /src/etc/passwd
 /src/etc/storage/
