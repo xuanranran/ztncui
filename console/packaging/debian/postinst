@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+if [ "$1" = configure ]; then
+    if ! getent group ztncui >/dev/null; then addgroup --system ztncui; fi
+    if ! getent passwd ztncui >/dev/null; then
+        adduser --system --ingroup ztncui --home /var/lib/ztncui-console --no-create-home ztncui
+    fi
+    if [ ! -d /var/lib/ztncui-console ]; then
+        install -d -o ztncui -g ztncui -m 0700 /var/lib/ztncui-console
+    fi
+    deb-systemd-helper unmask ztncui-console.service >/dev/null || true
+    if deb-systemd-helper --quiet was-enabled ztncui-console.service; then
+        deb-systemd-helper enable ztncui-console.service >/dev/null || true
+    else
+        deb-systemd-helper update-state ztncui-console.service >/dev/null || true
+    fi
+    if [ -d /run/systemd/system ]; then
+        systemctl daemon-reload
+        deb-systemd-invoke start ztncui-console.service || true
+    fi
+fi
+exit 0

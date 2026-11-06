@@ -1,0 +1,72 @@
+name: Build Debian Packages
+
+on:
+  push:
+    branches: [master]
+    paths: ['console/packaging/**', '.github/workflows/debian.yml']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing release version (without v)
+        default: '1.0.0'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  debian:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          ref: v${{ inputs.version || '1.0.0' }}
+          path: release-source
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: release-source/console/web/package-lock.json
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: release-source/console/go.mod
+          cache-dependency-path: release-source/console/go.sum
+      - name: Build original release frontend
+        working-directory: release-source/console/web
+        run: |
+          npm ci
+          npm run build
+      - name: Build original release binary
+        working-directory: release-source/console
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: ${{ matrix.arch }}
+        run: go build -trimpath -o ../../console-binary ./cmd/ztncui
+      - name: Build DEB
+        env:
+          VERSION: ${{ inputs.version || '1.0.0' }}
+          ARCH: ${{ matrix.arch }}
+        run: bash console/packaging/build-deb.sh console-binary "$VERSION" "$ARCH" Release/debian
+      - uses: docker/setup-qemu-action@v4.4.0
+        if: matrix.arch == 'arm64'
+        with:
+          platforms: arm64
+      - name: Validate package in isolated Debian
+        env:
+          VERSION: ${{ inputs.version || '1.0.0' }}
+          ARCH: ${{ matrix.arch }}
+        run: docker run --rm --platform "linux/$ARCH" -v "$PWD:/work:ro" debian:bookworm bash /work/console/packaging/test-deb.sh "/work/Release/debian/ztncui-console_${VERSION}_${ARCH}.deb"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ztncui-console-deb-${{ matrix.arch }}
+          if-no-files-found: error
+          path: |
+            Release/debian/*.deb
+            Release/debian/*.sha256

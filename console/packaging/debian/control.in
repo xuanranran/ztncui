@@ -1,0 +1,13 @@
+Package: ztncui-console
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: xuanranran <noreply@github.com>
+Section: admin
+Priority: optional
+Depends: zerotier-one, systemd (>= 247), init-system-helpers (>= 1.54), adduser, iputils-ping
+Installed-Size: @SIZE@
+Homepage: https://github.com/xuanranran/ztncui
+Description: ZeroTier Console network management interface
+ Single-administrator Go and Vue console with an embedded web interface,
+ native policy management, live status and bounded ICMP reachability checks.
+ Existing controller identities and application databases are preserved.

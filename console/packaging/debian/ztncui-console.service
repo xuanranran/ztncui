@@ -1,0 +1,26 @@
+[Unit]
+Description=ZeroTier Console
+After=network.target zerotier-one.service
+Requires=zerotier-one.service
+
+[Service]
+Type=simple
+User=ztncui
+Group=ztncui
+StateDirectory=ztncui-console
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/ztncui-console
+EnvironmentFile=/etc/ztncui-console/console.conf
+LoadCredential=zerotier-token:/var/lib/zerotier-one/authtoken.secret
+ExecStart=/opt/ztncui-console/ztncui-console --addr=${LISTEN_ADDR} --db=/var/lib/ztncui-console/console.sqlite --zt-address=${ZT_ADDRESS} --legacy-dir=${LEGACY_DIR}
+Restart=on-failure
+RestartSec=5s
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

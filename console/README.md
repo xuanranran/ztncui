@@ -108,6 +108,40 @@ The artifact contains a versioned `.tar.gz` executable bundle and SHA-256 checks
 It does not install or deploy automatically. The original Node application keeps
 its independent 0.8.8 version and DEB/RPM workflow for rollback.
 
+## Debian packages
+
+`Build Debian Packages` builds the original release tag for both `amd64` and
+`arm64`, verifies the ELF architecture, and tests installation, real administrator
+setup, reinstall, removal and purge in isolated Debian 12 containers (ARM64 uses
+QEMU). No installation test runs on a production server.
+
+Install ZeroTier One first, then install the package matching `dpkg --print-architecture`:
+
+```sh
+sudo apt install ./ztncui-console_1.0.0_amd64.deb
+# Or: sudo apt install ./ztncui-console_1.0.0_arm64.deb
+```
+
+The package installs `ztncui-console.service`, with configuration in
+`/etc/ztncui-console/console.conf` and the existing database location
+`/var/lib/ztncui-console/console.sqlite`. Fresh installs listen on
+`127.0.0.1:3000`. Use a local browser or SSH tunnel to set up the administrator;
+then change `LISTEN_ADDR=0.0.0.0:3000` if LAN access is needed and restart the
+service. Do not expose the uninitialized administrator setup publicly.
+
+The separate legacy `ztncui` package is not automatically removed or migrated.
+For legacy migration, stop the old UI, back up its data, copy its `etc` directory
+offline into a location readable by `ztncui`, and set `LEGACY_DIR` in the new
+configuration before starting the console. See the migration section above.
+Do not point both UIs at the same listening port. Existing manual systemd units
+under `/etc/systemd/system` continue to override the packaged vendor unit.
+
+Package upgrades preserve application data and edited conffiles. Removal/purge
+never deletes `/var/lib/ztncui-console`, the service account, or ZeroTier identity
+and controller data. First back up the database and ZeroTier directory before
+changing installation methods. Requires systemd 247+ and Linux; Debian 12+ is the
+tested baseline. These packages do not include a ZeroTier One daemon.
+
 Twemoji font source, attribution and licenses remain in
 `../src/public/fonts/Twemoji.Mozilla.NOTICE.txt` and
 `../src/public/fonts/Twemoji.Mozilla.LICENSE.md`.

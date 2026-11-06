@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+if [ "$1" = purge ] && command -v deb-systemd-helper >/dev/null; then
+    deb-systemd-helper purge ztncui-console.service >/dev/null || true
+fi
+case "$1" in
+    remove|purge)
+        if [ -d /run/systemd/system ]; then systemctl daemon-reload; fi
+        ;;
+esac
+# Administrator accounts, configuration under /var/lib, and ZeroTier identities are never deleted.
+exit 0
