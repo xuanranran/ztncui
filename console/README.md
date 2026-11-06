@@ -1,7 +1,8 @@
 # ztncui Console 1.0.0
 
-The redesigned console lives alongside the original `src/` application on
-`codex/modern-console`. Deployment is manual; source edits never deploy automatically.
+The Go + Vue console is the maintained application. Legacy Node UI source and
+its old packaging pipeline have been removed from the main branch. Deployment
+is manual; source edits never deploy automatically.
 
 ## Local preview
 
@@ -99,14 +100,14 @@ go build -trimpath -o ztncui-next ./cmd/ztncui
 
 The Go executable embeds the built frontend. `ui/dist`, generated executables,
 sample databases and browser verification screenshots are gitignored. The old
-packaging workflow remains unchanged; packaging/deployment of the new console
-is separate from the manual console deployment.
+Node packaging pipeline has been removed. Console artifact packaging is
+separate from manual server deployment.
 
 The `Build Console` GitHub Actions workflow tests the frontend and backend,
 including the Go race detector, then uploads `ztncui-console-1.0.0-linux-amd64`.
 The artifact contains a versioned `.tar.gz` executable bundle and SHA-256 checksum.
-It does not install or deploy automatically. The original Node application keeps
-its independent 0.8.8 version and DEB/RPM workflow for rollback.
+It does not install or deploy automatically. Historical 0.8.8 source and packages
+remain available through Git history and old Releases for rollback.
 
 ## Debian packages
 
@@ -143,8 +144,9 @@ changing installation methods. Requires systemd 247+ and Linux; Debian 12+ is th
 tested baseline. These packages do not include a ZeroTier One daemon.
 
 Twemoji font source, attribution and licenses remain in
-`../src/public/fonts/Twemoji.Mozilla.NOTICE.txt` and
-`../src/public/fonts/Twemoji.Mozilla.LICENSE.md`.
+`web/public/licenses/Twemoji.Mozilla.NOTICE.txt` and
+`web/public/licenses/Twemoji.Mozilla.LICENSE.md`. The font itself is bundled from
+`web/src/assets/fonts/Twemoji.Mozilla.ttf`.
 
 The on-demand flow-rule editor uses the upstream MPL-2.0 compiler; attribution
 and license are bundled in `web/public/licenses/ZeroTier-rule-compiler.*`.

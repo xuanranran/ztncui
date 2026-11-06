@@ -1,3 +1,10 @@
 *.swp
 Release/
 Staging/
+# Keep any local legacy runtime data out of commits after removing its source.
+/src/etc/passwd
+/src/etc/storage/
+/src/node_modules/
+/src/.env
+/src/ztncui
+/build/ztncui

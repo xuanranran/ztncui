@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Twemoji Mozilla";
-  src: url("../../../src/public/fonts/Twemoji.Mozilla.ttf") format("truetype");
+  src: url("./assets/fonts/Twemoji.Mozilla.ttf") format("truetype");
   font-display: swap;
   unicode-range:
     U+00A9, U+00AE, U+200D, U+203C, U+2049, U+20E3, U+2122, U+2139, U+2190-23FF,

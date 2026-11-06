@@ -5,13 +5,11 @@ on:
     branches: [master, main]
     paths:
       - 'console/**'
-      - 'src/public/fonts/**'
       - '.github/workflows/console.yml'
   pull_request:
     branches: [master, main]
     paths:
       - 'console/**'
-      - 'src/public/fonts/**'
       - '.github/workflows/console.yml'
   workflow_dispatch:
 
