@@ -7,9 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Existing release version (without v)
+        description: Package version (without v)
         default: '1.0.0'
         required: true
+      source_commit:
+        description: Optional full source commit SHA (defaults to workflow commit)
+        default: ''
+        required: false
 
 permissions:
   contents: read
@@ -24,10 +28,18 @@ jobs:
         arch: [amd64, arm64]
     steps:
       - uses: actions/checkout@v7
+      - name: Validate source revision
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+        run: '[[ -z "$SOURCE_COMMIT" || "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]'
       - uses: actions/checkout@v7
         with:
-          ref: v${{ inputs.version || '1.0.0' }}
+          ref: ${{ inputs.source_commit || github.sha }}
           path: release-source
+      - name: Record source revision
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_commit || github.sha }}
+        run: test "$(git -C release-source rev-parse HEAD)" = "$SOURCE_COMMIT"
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
@@ -37,12 +49,13 @@ jobs:
         with:
           go-version-file: release-source/console/go.mod
           cache-dependency-path: release-source/console/go.sum
-      - name: Build original release frontend
+      - name: Build and test selected frontend
         working-directory: release-source/console/web
         run: |
           npm ci
+          npm test
           npm run build
-      - name: Build original release binary
+      - name: Build selected source binary
         working-directory: release-source/console
         env:
           CGO_ENABLED: '0'
@@ -62,7 +75,7 @@ jobs:
         env:
           VERSION: ${{ inputs.version || '1.0.0' }}
           ARCH: ${{ matrix.arch }}
-        run: docker run --rm --platform "linux/$ARCH" -v "$PWD:/work:ro" debian:bookworm bash /work/console/packaging/test-deb.sh "/work/Release/debian/ztncui-console_${VERSION}_${ARCH}.deb"
+        run: docker run --rm --platform "linux/$ARCH" -v "$PWD:/work:ro" debian:bookworm bash /work/console/packaging/test-deb.sh "/work/Release/debian/ztncui-console_${VERSION}_${ARCH}.deb" /work/release-source/console/web/public
       - uses: actions/upload-artifact@v7
         with:
           name: ztncui-console-deb-${{ matrix.arch }}

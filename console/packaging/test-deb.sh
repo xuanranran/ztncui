@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 deb=${1:?DEB file required}
+icons=${2:-}
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq systemd init-system-helpers adduser iputils-ping python3 curl
@@ -31,6 +32,21 @@ for i in $(seq 1 30); do
     sleep 1
 done
 python3 -c 'import json; d=json.load(open("/tmp/auth.json")); assert d["setupRequired"] and not d["demo"]'
+if [[ -n "$icons" && -s "$icons/favicon.ico" ]]; then
+    python3 - "$icons" <<'PY'
+import hashlib, pathlib, sys, urllib.request
+source = pathlib.Path(sys.argv[1])
+base = 'http://127.0.0.1:3105'
+for name in ('favicon.ico', 'favicon-32x32.png', 'icon-192.png', 'apple-touch-icon.png'):
+    with urllib.request.urlopen(base + '/' + name + '?v=1', timeout=15) as response:
+        assert response.headers.get_content_type() in ('image/png', 'image/x-icon', 'image/vnd.microsoft.icon'), name
+        assert hashlib.sha256(response.read()).digest() == hashlib.sha256((source / name).read_bytes()).digest(), name
+with urllib.request.urlopen(base + '/login', timeout=15) as response:
+    html = response.read().decode()
+    assert '/favicon.ico?v=1' in html and '/apple-touch-icon.png?v=1' in html
+print('PASS: installed binary serves all four website icons and login-page references')
+PY
+fi
 curl -fsS -H 'Content-Type: application/json' --data '{"username":"admin","password":"TestOnly-Strong-Password-123"}' http://127.0.0.1:3105/api/setup >/dev/null
 kill "$pid"
 wait "$pid"
